@@ -1,37 +1,70 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset=utf-8>
+  <head>
+    <meta charset="utf-8" />
     <title>three.js app</title>
     <style>
-        body {
-            margin: 0;
-        }
+      body {
+        margin: 0;
+      }
 
-        #container {
-            position: absolute;
-            background: red;
-            z-index: 1;
-            left: 0;
-            top: 0;
-        }
+      #container {
+        position: absolute;
+        background: red;
+        z-index: 1;
+        left: 0;
+        top: 0;
+      }
     </style>
-</head>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<body>
-
+  <body>
     <div id="container">
-        <input id="input-x" type="text">
-        <input id="input-y" type="text">
-        <button id="input-btn">Ajouter</button>
-        <button id="input-start">Start</button>
+      <input id="input-x" type="text" />
+      <input id="input-y" type="text" />
+      <button id="input-add">Ajouter</button>
+      <button id="input-start">Start</button>
+
+      <br />
+      <div>
+        Liste des points :
+        <div id="list-points"></div>
+      </div>
+      <br />
+
+      <fieldset>
+        <legend>Choisir l'algorithme à utiliser:</legend>
+
+        <div onclick="updateAlgo('bernstein')">
+          <input type="radio" id="bernstein" name="algo" value="bernstein" checked />
+          <label for="dewey">Bernstein</label>
+        </div>
+
+        <div onclick="updateAlgo('decastleljau')">
+          <input type="radio" id="decastleljau" name="algo" value="decastleljau" />
+          <label for="huey">De Casteljau</label>
+        </div>
+      </fieldset>
     </div>
 
+    <!-- Trigger/Open The Modal -->
+    <button id="btn-modal">Open Modal</button>
+
+    <!-- The Modal -->
+    <div id="modal-edit" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Entrez les nouvelles valeurs pour le point :</p>
+        <input id="input-edit-x" type="text">
+        <input id="input-edit-y" type="text">
+        <button id="input-edit-confirm">OK</button>
+      </div>
+    </div>
 
     <script src="three.js"></script>
     <script src="courbesBezier.js"></script>
-
-</body>
-
+    <script src="gui.js"></script>
+  </body>
 </html>

@@ -52,6 +52,8 @@ const listOfPoints = [
     { x: -30, y: -35 },
 ]
 
+updateList(listOfPoints)
+
 function choose(n, k) {
     if (k === 0) return 1;
     return (n * choose(n - 1, k - 1)) / k;
@@ -171,7 +173,25 @@ function deCasteljau() {
     console.log(dcPoints)
 }
 
-document.getElementById("input-btn").addEventListener('click', () => {
+function updateList() {
+    document.getElementById("list-points").innerHTML = ""
+    for (const p of listOfPoints) {
+        document.getElementById("list-points").innerHTML += `${p.x} ${p.y} <button onclick="editPoint(${p.x}, ${p.y})">Modifier</button> <button onclick="deletePoint(${p.x}, ${p.y})">Supprimer</button> <br/>`
+    }
+}
+
+function editPoint(x, y) {
+    console.log('edit', x, y)
+
+var modal = document.getElementById("modal-edit");
+    modal.style.display = "block";
+}
+
+function deletePoint(x, y) {
+    console.log('delete', x, y)
+}
+
+document.getElementById("input-add").addEventListener('click', () => {
     console.log('Clicking button')
 
     const x = Number(document.getElementById('input-x').value) || 0
@@ -187,11 +207,13 @@ document.getElementById("input-btn").addEventListener('click', () => {
     console.log('adding sphere!', x, y)
 
     listOfPoints.push({ x, y });
+
+    updateList(listOfPoints)
 })
 
 document.getElementById('input-start').addEventListener('click', e => {
     console.log('start')
-    //drawCurve();
+    drawCurve();
     deCasteljau()
 })
 
@@ -201,86 +223,93 @@ drawCurve();
 deCasteljau()
 
 //Draws the axis with graduation 
-function drawAxisGraduation(){
-    const axisMaterial=new THREE.LineBasicMaterial({color:0xffffff});
-    const gradSize=0.15;     //Half of the size of a graduation
-    
-    const Xpoints=[];
-    const Ypoints=[];
+function drawAxisGraduation() {
+    const axisMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const gradSize = 0.15;     //Half of the size of a graduation
 
-    Xpoints.push(new THREE.Vector3(-window.innerWidth,0,0));
-    Xpoints.push(new THREE.Vector3(window.innerWidth,0,0));
-    Ypoints.push(new THREE.Vector3(0,-window.innerHeight,0));
-    Ypoints.push(new THREE.Vector3(0,window.innerHeight,0));
+    const Xpoints = [];
+    const Ypoints = [];
 
-    const Xgeometry=new THREE.BufferGeometry().setFromPoints(Xpoints);
-    const Ygeometry=new THREE.BufferGeometry().setFromPoints(Ypoints);
+    Xpoints.push(new THREE.Vector3(-window.innerWidth, 0, 0));
+    Xpoints.push(new THREE.Vector3(window.innerWidth, 0, 0));
+    Ypoints.push(new THREE.Vector3(0, -window.innerHeight, 0));
+    Ypoints.push(new THREE.Vector3(0, window.innerHeight, 0));
 
-    const Xline=new THREE.Line(Xgeometry,axisMaterial);
-    const Yline=new THREE.Line(Ygeometry,axisMaterial);
-    
+    const Xgeometry = new THREE.BufferGeometry().setFromPoints(Xpoints);
+    const Ygeometry = new THREE.BufferGeometry().setFromPoints(Ypoints);
+
+    const Xline = new THREE.Line(Xgeometry, axisMaterial);
+    const Yline = new THREE.Line(Ygeometry, axisMaterial);
+
     scene.add(Xline);
     scene.add(Yline);
-        
-    for(let i =0;i<window.innerWidth;i++){
-        let gradX=[];
-        let gradXNeg=[];
 
-        gradX.push(new THREE.Vector3(i,gradSize,0));
-        gradX.push(new THREE.Vector3(i,-gradSize,0));
-        gradXNeg.push(new THREE.Vector3(-i,gradSize,0));
-        gradXNeg.push(new THREE.Vector3(-i,-gradSize,0));
+    for (let i = 0; i < window.innerWidth; i++) {
+        let gradX = [];
+        let gradXNeg = [];
 
-        let gradXNegGeo=new THREE.BufferGeometry().setFromPoints(gradXNeg);
-        let gradXNegLine=new THREE.Line(gradXNegGeo,axisMaterial);
-        let gradXGeo=new THREE.BufferGeometry().setFromPoints(gradX);
-        let gradXLine=new THREE.Line(gradXGeo,axisMaterial);
+        gradX.push(new THREE.Vector3(i, gradSize, 0));
+        gradX.push(new THREE.Vector3(i, -gradSize, 0));
+        gradXNeg.push(new THREE.Vector3(-i, gradSize, 0));
+        gradXNeg.push(new THREE.Vector3(-i, -gradSize, 0));
+
+        let gradXNegGeo = new THREE.BufferGeometry().setFromPoints(gradXNeg);
+        let gradXNegLine = new THREE.Line(gradXNegGeo, axisMaterial);
+        let gradXGeo = new THREE.BufferGeometry().setFromPoints(gradX);
+        let gradXLine = new THREE.Line(gradXGeo, axisMaterial);
 
         scene.add(gradXNegLine);
         scene.add(gradXLine);
     }
 
-    for(let i =0;i<window.innerHeight;i++){
-        let gradY=[];
-        let gradYNeg=[];
-        
-        gradY.push(new THREE.Vector3(gradSize,i,0));
-        gradY.push(new THREE.Vector3(-gradSize,i,0));
-        gradYNeg.push(new THREE.Vector3(gradSize,-i,0));
-        gradYNeg.push(new THREE.Vector3(-gradSize,-i,0));
-        
-        let gradYNegGeo=new THREE.BufferGeometry().setFromPoints(gradYNeg);
-        let gradYNegLine=new THREE.Line(gradYNegGeo,axisMaterial);
-        let gradYGeo=new THREE.BufferGeometry().setFromPoints(gradY);
-        let gradYLine=new THREE.Line(gradYGeo,axisMaterial);
-        
+    for (let i = 0; i < window.innerHeight; i++) {
+        let gradY = [];
+        let gradYNeg = [];
+
+        gradY.push(new THREE.Vector3(gradSize, i, 0));
+        gradY.push(new THREE.Vector3(-gradSize, i, 0));
+        gradYNeg.push(new THREE.Vector3(gradSize, -i, 0));
+        gradYNeg.push(new THREE.Vector3(-gradSize, -i, 0));
+
+        let gradYNegGeo = new THREE.BufferGeometry().setFromPoints(gradYNeg);
+        let gradYNegLine = new THREE.Line(gradYNegGeo, axisMaterial);
+        let gradYGeo = new THREE.BufferGeometry().setFromPoints(gradY);
+        let gradYLine = new THREE.Line(gradYGeo, axisMaterial);
+
         scene.add(gradYNegLine);
         scene.add(gradYLine);
     }
 }
 
-function nathanDeCasteljau(){
-    let pointsDeConstruction=[];
-    let step=0.1;
-    let pointsControl=[{x: 0, y: 0},{x:0, y:10},{x:15,y:25}];
+function nathanDeCasteljau() {
+    let pointsDeConstruction = [];
+    let step = 0.1;
+    let pointsControl = [{ x: 0, y: 0 }, { x: 0, y: 10 }, { x: 15, y: 25 }];
 
     pointsDeConstruction.push(pointsControl);
 
-    for(let t=0;t<1;t+=step){
+    for (let t = 0; t < 1; t += step) {
 
-        for(let k=1;k<pointsControl.length;k++){
-            let newPoints=[{x:-1,y:-1}];
-            for(let j=0;j<pointsControl.length-k;j++){
-                newPoints[j]={x:-1,y:-1};
-                newPoints[j].x=(1-t)*pointsDeConstruction[k-1][j].x+t*pointsDeConstruction[k-1][j+1].x;
-                newPoints[j].y=(1-t)*pointsDeConstruction[k-1][j].y+t*pointsDeConstruction[k-1][j+1].y;
+        for (let k = 1; k < pointsControl.length; k++) {
+            let newPoints = [{ x: -1, y: -1 }];
+            for (let j = 0; j < pointsControl.length - k; j++) {
+                newPoints[j] = { x: -1, y: -1 };
+                newPoints[j].x = (1 - t) * pointsDeConstruction[k - 1][j].x + t * pointsDeConstruction[k - 1][j + 1].x;
+                newPoints[j].y = (1 - t) * pointsDeConstruction[k - 1][j].y + t * pointsDeConstruction[k - 1][j + 1].y;
             }
             pointsDeConstruction.push(newPoints);
         }
     }
-    for(const p0 of pointsDeConstruction){
-        console.log('hello',p0[0]);
+    for (const p0 of pointsDeConstruction) {
+        console.log('hello', p0[0]);
     }
 }
 
+function updateAlgo(algo) {
+    console.log('updateAlgo', algo)
+    document.getElementById(algo).checked=true
+}
+
+
 //nathanDeCasteljau()
+
