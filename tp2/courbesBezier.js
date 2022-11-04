@@ -1,3 +1,7 @@
+import { Settings } from './input.js'
+
+
+
 // Instanciation du renderer (moteur de rendu)
 const renderer = new THREE.WebGLRenderer();
 // On ajoute le moteur au DOM
@@ -40,13 +44,13 @@ document.addEventListener('pointerdown', e => {
     scene.add(sphere);
 })
 
+const settings = new Settings()
 
 const listOfPoints = [
     { x: 0, y: 0 },
     { x: 0, y: 20 },
     { x: 20, y: 20 },
 ]
-
 
 // Renvoie k parmi n
 function choose(n, k) {
@@ -97,7 +101,7 @@ function drawBernstein(points) {
 
 
 function drawControlPoints(controlPoints) {
-    const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+    const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 1));
 
     // Géomtrie du triangle
     const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
@@ -109,7 +113,7 @@ function drawControlPoints(controlPoints) {
 }
 
 // Création d'un matériau de couleur vert
-const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 })
+const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 3 })
 
 function animate() {
     // On demande au naviguateur d'éxecuter cette fonction en continue (60 fois par seconde en général)
@@ -161,10 +165,6 @@ function drawDeCasteljau(points, max, step) {
     //console.log(dcPoints)
 }
 
-
-async function sleep(ms) {
-    return new Promise((resolve, reject) => setTimeout(() => resolve(), ms))
-}
 
 async function animateDeCasteljau(points) {
 
@@ -281,7 +281,7 @@ function disposeNode(child) {
     }
 }
 
-function refreshCanvas() {
+export function refreshCanvas() {
     for (const child of scene.children) {
         if (child == scene.getObjectByName("Axis")) {
             //console.log('ici ça skip', child)
@@ -291,10 +291,7 @@ function refreshCanvas() {
 
         disposeNode(child)
         scene.remove(child);
-
     }
-
-
 
     console.log('refresh using method', currentMethod)
 
@@ -321,9 +318,6 @@ function refreshCanvas() {
         //animateDeCasteljau(transformedPoints)
     }
 }
-
-document.getElementById('input-start').addEventListener('click', e => {
-})
 
 const axisGroup = new THREE.Group();
 axisGroup.name = "Axis";
@@ -400,17 +394,18 @@ function updateAlgo(algo) {
 refreshCanvas();
 
 function transformPoint(point) {
-    const theta = rotationFactorDeg * Math.PI / 180;
-    const translated = { x: point.x + translationX, y: point.y + translationY }
-    const scaled = { x: translated.x * scaleFactor, y: translated.y * scaleFactor }
-    const rotationNormalized = { x: scaled.x - rotationCenterX, y: scaled.y - rotationCenterY }
+    const s = settings;
+    const theta = s.rotationFactorDeg * Math.PI / 180;
+    const translated = { x: point.x + s.translationX, y: point.y + s.translationY }
+    const scaled = { x: translated.x * s.scaleFactor, y: translated.y * s.scaleFactor }
+    const rotationNormalized = { x: scaled.x - s.rotationCenterX, y: scaled.y - s.rotationCenterY }
     const rotated = {
         x: (rotationNormalized.x * Math.cos(theta) - rotationNormalized.y * Math.sin(theta)),
         y: (rotationNormalized.x * Math.sin(theta) + rotationNormalized.y * Math.cos(theta)),
     }
     const rotatedNormal = {
-        x: rotated.x + rotationCenterX,
-        y: rotated.y + rotationCenterY,
+        x: rotated.x + s.rotationCenterX,
+        y: rotated.y + s.rotationCenterY,
     }
 
     return rotatedNormal;
@@ -432,3 +427,7 @@ function round2(num) {
 drawAxisGraduation();
 // On appel la fonction une première fois pour initialiser
 animate();
+
+setInterval(() => {
+    updateList()
+}, 500)
