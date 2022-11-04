@@ -32,28 +32,23 @@ const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
 document.addEventListener('pointerdown', e => {
     return;
-    console.log('click', e)
-    console.log(e.pageX, e.pageY)
-
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     const x = e.pageX - window.innerWidth;
     const y = e.pageY - window.innerHeight;
     sphere.position.x = x;
     sphere.position.y = y;
     scene.add(sphere);
-    console.log('adding sphere!', x, y)
 })
 
 
 const listOfPoints = [
     { x: 0, y: 0 },
-    { x: 15, y: 20 },
-    { x: 20, y: -15 },
-    { x: -30, y: -35 },
+    { x: 0, y: 20 },
+    { x: 20, y: 20 },
 ]
 
-updateList(listOfPoints)
 
+// Renvoie k parmi n
 function choose(n, k) {
     if (k === 0) return 1;
     return (n * choose(n - 1, k - 1)) / k;
@@ -61,21 +56,17 @@ function choose(n, k) {
 
 const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff })
 
-const dcMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
+const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
-function drawCurve() {
+function drawBernstein(points) {
     const step = 0.01
-    const n = listOfPoints.length - 1;
+    const n = points.length - 1;
 
     function bernstein(i, t) {
         // i ème polynôme de Bernstein évalué en un t entre 0 et 1
         const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
         return bernstein;
     }
-
-    console.log('LISTE DES POINTS', listOfPoints);
-
-    console.log('n=', n)
 
     const bezierPoints = []
 
@@ -85,29 +76,37 @@ function drawCurve() {
 
 
         for (let i = 0; i <= n; i++) {
-            console.log('i = ', i, 'sur', n)
-            sumX += listOfPoints[i].x * bernstein(i, t)
-            sumY += listOfPoints[i].y * bernstein(i, t)
+            sumX += points[i].x * bernstein(i, t)
+            sumY += points[i].y * bernstein(i, t)
         }
 
         bezierPoints.push({
             x: sumX,
             y: sumY,
         })
-        console.log('---')
     }
 
-    console.log(bezierPoints)
+    const newPoints = bezierPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
 
-    const points = bezierPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
-
-    const polyGeom = new THREE.BufferGeometry().setFromPoints(points);
+    const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
 
     const curve = new THREE.Line(polyGeom, curveMaterial);
 
     scene.add(curve)
 }
 
+
+function drawControlPoints(controlPoints) {
+    const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+
+    // Géomtrie du triangle
+    const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
+
+    // Mesh du triangle qui sera affiché
+    const controlPolygon = new THREE.Line(polyGeom, controlMaterial);
+
+    scene.add(controlPolygon)
+}
 
 // Création d'un matériau de couleur vert
 const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 })
@@ -116,112 +115,218 @@ function animate() {
     // On demande au naviguateur d'éxecuter cette fonction en continue (60 fois par seconde en général)
     requestAnimationFrame(animate);
 
+    //if (Math.random() < 0.5) return;
 
-    // Les points du triangle
-    const points = listOfPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
-
-    // Géomtrie du triangle
-    const polyGeom = new THREE.BufferGeometry().setFromPoints(points);
-
-    // Mesh du triangle qui sera affiché
-    const polygon = new THREE.Line(polyGeom, controlMaterial);
-
-    scene.add(polygon)
+    refreshCanvas();
 
     // On fait le rendu graphique à chaque frame puisque l'état du monde a été modifié
     renderer.render(scene, camera);
 }
 
-// On appel la fonction une première fois pour initialiser
-animate();
 
-function deCasteljau() {
+function drawDeCasteljau(points, max, step) {
 
     function pointJK(j, k, t, coords) {
-        console.log('point j k t base', j, k, t, coords)
-        if (k == 0) return listOfPoints[j][coords];
+        if (k == 0) return points[j][coords];
         return (1 - t) * pointJK(j, k - 1, t, coords) + t * pointJK(j + 1, k - 1, t, coords);
     }
 
 
-    const n = listOfPoints.length - 1
-    const step = 0.05;
+    const n = points.length - 1
 
     const dcPoints = []
 
-    for (let t = 0; t < 1; t += step) {
+    //const max = 0.1
+
+    for (let t = 0; t < max; t += step) {
+        //dcPoints.push([]);
         for (let k = 1; k <= n; k++) {
             for (let j = 0; j <= n - k; j++) {
-                console.log('j', j, listOfPoints[j])
                 const x = pointJK(j, k, t, 'x');
                 const y = pointJK(j, k, t, 'y');
 
-                console.log('dc', x, y)
                 dcPoints.push({ x, y })
             }
         }
+        //Draw step
     }
+    const newPoints = dcPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
 
-    const points = dcPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+    const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
 
-    const polyGeom = new THREE.BufferGeometry().setFromPoints(points);
-
-    const curve = new THREE.Line(polyGeom, dcMaterial);
+    const curve = new THREE.Line(polyGeom, redMaterial);
 
     scene.add(curve)
 
-    console.log(dcPoints)
+    //console.log(dcPoints)
 }
+
+
+async function sleep(ms) {
+    return new Promise((resolve, reject) => setTimeout(() => resolve(), ms))
+}
+
+async function animateDeCasteljau(points) {
+
+    for (let i = 0; i < 100; i++) {
+        //console.log('animate', i)
+        drawDeCasteljau(points, i / 100, 0.1)
+        sleep(50)
+    }
+}
+
 
 function updateList() {
     document.getElementById("list-points").innerHTML = ""
     for (const p of listOfPoints) {
-        document.getElementById("list-points").innerHTML += `${p.x} ${p.y} <button onclick="editPoint(${p.x}, ${p.y})">Modifier</button> <button onclick="deletePoint(${p.x}, ${p.y})">Supprimer</button> <br/>`
+        const transformedP = transformPoint(p)
+        document.getElementById("list-points").innerHTML += `${p.x} ${p.y} <button onclick="editPoint(${p.x}, ${p.y})">Modifier</button> <button onclick="deletePoint(${p.x}, ${p.y})">Supprimer</button> Transformé : (${round2(transformedP.x)}, ${round2(transformedP.y)}) <br/>`
     }
 }
 
 function editPoint(x, y) {
-    console.log('edit', x, y)
-
-var modal = document.getElementById("modal-edit");
+    var modal = document.getElementById("modal-edit");
     modal.style.display = "block";
 }
 
 function deletePoint(x, y) {
-    console.log('delete', x, y)
+    const res = listOfPoints.find(p => p.x == x && p.y == y)
+    if (!res) return
+    const index = listOfPoints.indexOf(res)
+    if (index != -1)
+        listOfPoints.splice(index, 1)
+    updateList()
+    refreshCanvas()
 }
 
+// add point
 document.getElementById("input-add").addEventListener('click', () => {
-    console.log('Clicking button')
-
     const x = Number(document.getElementById('input-x').value) || 0
     const y = Number(document.getElementById('input-y').value) || 0
-
-    console.log('valeurs de x et y', x, y)
-
-
-    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    sphere.position.x = x;
-    sphere.position.y = y;
-    scene.add(sphere);
-    console.log('adding sphere!', x, y)
 
     listOfPoints.push({ x, y });
 
     updateList(listOfPoints)
+
+    refreshCanvas()
 })
+
+//TODO faut checker les inputs pour etre sure que c des nombres
+
+let translationX = 0;
+//Translation par x de notre liste des points
+document.getElementById("translation-x").addEventListener('change', () => {
+    translationX = Number(document.getElementById("translation-x").value);
+    refreshCanvas()
+    updateList();
+})
+
+let translationY = 0;
+//Tranlsation par y de notre liste de point
+document.getElementById("translation-y").addEventListener('change', () => {
+    translationY = Number(document.getElementById("translation-y").value);
+    refreshCanvas()
+    updateList();
+})
+
+let scaleFactor = 1;
+
+document.getElementById("scale-factor").addEventListener('change', () => {
+    scaleFactor = Number(document.getElementById("scale-factor").value);
+    refreshCanvas();
+    updateList();
+})
+
+let rotationFactorDeg = 0;
+
+document.getElementById("rotation-factor").addEventListener('change', (event) => {
+    rotationFactorDeg = Number(event.target.value)
+    // https://en.wikipedia.org/wiki/Rotation_matrix
+    refreshCanvas()
+    updateList();
+})
+
+let rotationCenterX = 0;
+//Translation par x de notre liste des points
+document.getElementById("rotation-center-x").addEventListener('change', (event) => {
+    rotationCenterX = Number(event.target.value);
+    refreshCanvas()
+    updateList();
+})
+
+let rotationCenterY = 0;
+//Tranlsation par y de notre liste de point
+document.getElementById("rotation-center-y").addEventListener('change', (event) => {
+    rotationCenterY = Number(event.target.value);
+    refreshCanvas()
+    updateList();
+})
+
+
+//let currentMethod = 'bernstein' // or 'decasteljau'
+let currentMethod = 'decasteljau' // or 'decasteljau'
+
+let deCasteljauAnimationState = 0;
+let deCasteljauAnimationStateOrder = true;
+
+function disposeNode(child) {
+    if (child.geometry)
+        child.geometry.dispose()
+    if (child.material)
+        child.material.dispose()
+    if (child.children) {
+        for (const subchild of child.children) {
+            disposeNode(subchild)
+        }
+    }
+}
+
+function refreshCanvas() {
+    for (const child of scene.children) {
+        if (child == scene.getObjectByName("Axis")) {
+            //console.log('ici ça skip', child)
+            continue
+        }
+
+
+        disposeNode(child)
+        scene.remove(child);
+
+    }
+
+
+
+    console.log('refresh using method', currentMethod)
+
+    const transformedPoints = getTransformedList(listOfPoints)
+    drawControlPoints(transformedPoints);
+
+    if (currentMethod == 'bernstein') {
+        drawBernstein(transformedPoints);
+    }
+    else {
+        drawDeCasteljau(transformedPoints, deCasteljauAnimationState, 0.1)
+        const step = 0.025
+        //console.log(deCasteljauAnimationStateOrder)
+        if (deCasteljauAnimationStateOrder) {
+            deCasteljauAnimationState += step;
+            if (deCasteljauAnimationState > 1)
+                deCasteljauAnimationStateOrder = false;
+
+        } else {
+            deCasteljauAnimationState -= step;
+            if (deCasteljauAnimationState < 0)
+                deCasteljauAnimationStateOrder = true;
+        }
+        //animateDeCasteljau(transformedPoints)
+    }
+}
 
 document.getElementById('input-start').addEventListener('click', e => {
-    console.log('start')
-    drawCurve();
-    deCasteljau()
 })
 
-drawCurve();
-
-
-deCasteljau()
-
+const axisGroup = new THREE.Group();
+axisGroup.name = "Axis";
 //Draws the axis with graduation 
 function drawAxisGraduation() {
     const axisMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
@@ -241,8 +346,9 @@ function drawAxisGraduation() {
     const Xline = new THREE.Line(Xgeometry, axisMaterial);
     const Yline = new THREE.Line(Ygeometry, axisMaterial);
 
-    scene.add(Xline);
-    scene.add(Yline);
+    axisGroup.add(Xline);
+    axisGroup.add(Yline);
+
 
     for (let i = 0; i < window.innerWidth; i++) {
         let gradX = [];
@@ -258,8 +364,9 @@ function drawAxisGraduation() {
         let gradXGeo = new THREE.BufferGeometry().setFromPoints(gradX);
         let gradXLine = new THREE.Line(gradXGeo, axisMaterial);
 
-        scene.add(gradXNegLine);
-        scene.add(gradXLine);
+
+        axisGroup.add(gradXNegLine);
+        axisGroup.add(gradXLine);
     }
 
     for (let i = 0; i < window.innerHeight; i++) {
@@ -276,40 +383,52 @@ function drawAxisGraduation() {
         let gradYGeo = new THREE.BufferGeometry().setFromPoints(gradY);
         let gradYLine = new THREE.Line(gradYGeo, axisMaterial);
 
-        scene.add(gradYNegLine);
-        scene.add(gradYLine);
+        axisGroup.add(gradYNegLine);
+        axisGroup.add(gradYLine);
     }
+    scene.add(axisGroup);
 }
 
-function nathanDeCasteljau() {
-    let pointsDeConstruction = [];
-    let step = 0.1;
-    let pointsControl = [{ x: 0, y: 0 }, { x: 0, y: 10 }, { x: 15, y: 25 }];
 
-    pointsDeConstruction.push(pointsControl);
-
-    for (let t = 0; t < 1; t += step) {
-
-        for (let k = 1; k < pointsControl.length; k++) {
-            let newPoints = [{ x: -1, y: -1 }];
-            for (let j = 0; j < pointsControl.length - k; j++) {
-                newPoints[j] = { x: -1, y: -1 };
-                newPoints[j].x = (1 - t) * pointsDeConstruction[k - 1][j].x + t * pointsDeConstruction[k - 1][j + 1].x;
-                newPoints[j].y = (1 - t) * pointsDeConstruction[k - 1][j].y + t * pointsDeConstruction[k - 1][j + 1].y;
-            }
-            pointsDeConstruction.push(newPoints);
-        }
-    }
-    for (const p0 of pointsDeConstruction) {
-        console.log('hello', p0[0]);
-    }
-}
 
 function updateAlgo(algo) {
     console.log('updateAlgo', algo)
-    document.getElementById(algo).checked=true
+    document.getElementById(algo).checked = true
+    currentMethod = algo
+}
+
+refreshCanvas();
+
+function transformPoint(point) {
+    const theta = rotationFactorDeg * Math.PI / 180;
+    const translated = { x: point.x + translationX, y: point.y + translationY }
+    const scaled = { x: translated.x * scaleFactor, y: translated.y * scaleFactor }
+    const rotationNormalized = { x: scaled.x - rotationCenterX, y: scaled.y - rotationCenterY }
+    const rotated = {
+        x: (rotationNormalized.x * Math.cos(theta) - rotationNormalized.y * Math.sin(theta)),
+        y: (rotationNormalized.x * Math.sin(theta) + rotationNormalized.y * Math.cos(theta)),
+    }
+    const rotatedNormal = {
+        x: rotated.x + rotationCenterX,
+        y: rotated.y + rotationCenterY,
+    }
+
+    return rotatedNormal;
+}
+
+function getTransformedList(original) {
+    return original.map(e => {
+        return transformPoint(e)
+    })
 }
 
 
-//nathanDeCasteljau()
+updateList(listOfPoints)
 
+function round2(num) {
+    return Math.round(num * 100) / 100
+}
+
+drawAxisGraduation();
+// On appel la fonction une première fois pour initialiser
+animate();

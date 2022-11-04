@@ -1,70 +1,103 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>three.js app</title>
-    <style>
-      body {
-        margin: 0;
-      }
 
-      #container {
-        position: absolute;
-        background: red;
-        z-index: 1;
-        left: 0;
-        top: 0;
-      }
-    </style>
-    <link rel="stylesheet" href="style.css" />
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <title>three.js app</title>
+  <style>
+    body {
+      margin: 0;
+    }
 
-  <body>
-    <div id="container">
-      <input id="input-x" type="text" />
-      <input id="input-y" type="text" />
-      <button id="input-add">Ajouter</button>
-      <button id="input-start">Start</button>
+    #container {
+      position: absolute;
+      background: rgb(225, 118, 109);
+      /*background: linear-gradient(90deg, rgba(131, 58, 180, 1) 0%, rgba(253, 29, 29, 1) 50%, rgba(252, 176, 69, 1) 100%);*/
+      z-index: 1;
+      left: 0;
+      top: 0;
+    }
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-      <br />
+<body>
+  <div id="container">
+    <input id="input-x" type="text" />
+    <input id="input-y" type="text" />
+    <button id="input-add">Ajouter</button>
+    <button id="input-start">Start</button>
+
+    <br />
+    <div>
+      Liste des points :
+      <div id="list-points"></div>
+    </div>
+    <br />
+
+    <fieldset>
+      <legend>Choisir l'algorithme à utiliser:</legend>
+
+      <div onclick="updateAlgo('bernstein')">
+        <input type="radio" id="bernstein" name="algo" value="bernstein" checked />
+        <label for="dewey">Bernstein</label>
+      </div>
+
+      <div onclick="updateAlgo('decastleljau')">
+        <input type="radio" id="decastleljau" name="algo" value="decastleljau" />
+        <label for="huey">De Casteljau</label>
+      </div>
+    </fieldset>
+
+    <div>
+      Modifications
       <div>
-        Liste des points :
-        <div id="list-points"></div>
+        Translation X
+        <input type="text" id="translation-x" value="0">
       </div>
-      <br />
-
-      <fieldset>
-        <legend>Choisir l'algorithme à utiliser:</legend>
-
-        <div onclick="updateAlgo('bernstein')">
-          <input type="radio" id="bernstein" name="algo" value="bernstein" checked />
-          <label for="dewey">Bernstein</label>
-        </div>
-
-        <div onclick="updateAlgo('decastleljau')">
-          <input type="radio" id="decastleljau" name="algo" value="decastleljau" />
-          <label for="huey">De Casteljau</label>
-        </div>
-      </fieldset>
-    </div>
-
-    <!-- Trigger/Open The Modal -->
-    <button id="btn-modal">Open Modal</button>
-
-    <!-- The Modal -->
-    <div id="modal-edit" class="modal">
-      <!-- Modal content -->
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <p>Entrez les nouvelles valeurs pour le point :</p>
-        <input id="input-edit-x" type="text">
-        <input id="input-edit-y" type="text">
-        <button id="input-edit-confirm">OK</button>
+      <div>
+        Translation Y
+        <input type="text" id="translation-y" value="0">
       </div>
-    </div>
+      <div>
+        Facteur d'homothétie
+        <input type="text" id="scale-factor" value="1">
+      </div>
 
-    <script src="three.js"></script>
-    <script src="courbesBezier.js"></script>
-    <script src="gui.js"></script>
-  </body>
+      <div>
+        Angle de rotation (deg)
+        <input type="text" id="rotation-factor" value="0">
+      </div>
+      <div>
+        Centre de rotation X
+        <input type="text" id="rotation-center-x" value="0">
+      </div>
+      <div>
+        Centre de rotation Y
+        <input type="text" id="rotation-center-y" value="0">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Trigger/Open The Modal -->
+  <button id="btn-modal">Open Modal</button>
+
+  <!-- The Modal -->
+  <div id="modal-edit" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Entrez les nouvelles valeurs pour le point :</p>
+      <input id="input-edit-x" type="text">
+      <input id="input-edit-y" type="text">
+      <button id="input-edit-confirm">OK</button>
+    </div>
+  </div>
+
+  <script src="three.js"></script>
+  <script src="courbesBezier.js"></script>
+  <script src="gui.js"></script>
+</body>
+
 </html>
