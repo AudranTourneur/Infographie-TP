@@ -1,5 +1,6 @@
 import { Settings } from './input.js'
-import { uuid } from './utils.js'
+import { clickEventToWorldCoords, disposeNode, drawAxisGraduation, choose } from './utils.js'
+import { updateList } from './gui.js'
 
 // Instanciation du renderer (moteur de rendu)
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas') });
@@ -40,29 +41,13 @@ renderer.render(scene, camera);
 const sphereGeometry = new THREE.SphereGeometry(1, 32, 16);
 const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
-document.addEventListener('pointerdown', e => {
-    return;
-    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    const x = e.pageX - window.innerWidth;
-    const y = e.pageY - window.innerHeight;
-    sphere.position.x = x;
-    sphere.position.y = y;
-    scene.add(sphere);
-})
+const settings = new Settings(canvas, camera)
 
-const settings = new Settings()
-
-let listOfPoints = [
+export let listOfPoints = [
     { x: 0, y: 0 },
     { x: 0, y: 20 },
     { x: 20, y: 20 },
 ]
-
-// Renvoie k parmi n
-function choose(n, k) {
-    if (k === 0) return 1;
-    return (n * choose(n - 1, k - 1)) / k;
-}
 
 const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff })
 
@@ -81,8 +66,6 @@ function bernstein(n, i, t) {
             polyNomeBernestein.curve.geometry.dispose();
         }
 
-
-
         let bernesteinPolyString = choose(n, i) + " * t^" + i + " * (1-t)^" + (n - i);
 
         let bernesteinPolyPoints = [];
@@ -92,7 +75,6 @@ function bernstein(n, i, t) {
         }
 
         polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
-        //console.table(polyNomeBernestein);
     }
     return bernstein;
 }
@@ -105,7 +87,6 @@ function drawBernstein(points) {
     for (let t = 0; t < 1; t += step) {
         let sumX = 0;
         let sumY = 0;
-
 
         for (let i = 0; i <= n; i++) {
             sumX += points[i].x * bernstein(n, i, t)
@@ -137,14 +118,9 @@ function drawControlPoints(controlPoints) {
     scene.add(controlPolygon)
 }
 
-
-
 function animate() {
     // On demande au naviguateur d'éxecuter cette fonction en continue (60 fois par seconde en général)
     requestAnimationFrame(animate);
-
-    //if (Math.random() < 0.5) return;
-
     refreshCanvas();
 
     // On fait le rendu graphique à chaque frame puisque l'état du monde a été modifié
@@ -159,15 +135,11 @@ function drawDeCasteljau(points, max, step) {
         return (1 - t) * pointJK(j, k - 1, t, coords) + t * pointJK(j + 1, k - 1, t, coords);
     }
 
-
     const n = points.length - 1
 
     const dcPoints = []
 
-    //const max = 0.1
-
     for (let t = 0; t < max; t += step) {
-        //dcPoints.push([]);
         for (let k = 1; k <= n; k++) {
             for (let j = 0; j <= n - k; j++) {
                 const x = pointJK(j, k, t, 'x');
@@ -176,7 +148,6 @@ function drawDeCasteljau(points, max, step) {
                 dcPoints.push({ x, y })
             }
         }
-        //Draw step
     }
     const newPoints = dcPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
 
@@ -185,52 +156,21 @@ function drawDeCasteljau(points, max, step) {
     const curve = new THREE.Line(polyGeom, redMaterial);
 
     scene.add(curve)
-
-    //console.log(dcPoints)
 }
 
 
 async function animateDeCasteljau(points) {
 
     for (let i = 0; i < 100; i++) {
-        //console.log('animate', i)
         drawDeCasteljau(points, i / 100, 0.1)
         sleep(50)
     }
 }
 
-
-function updateList() {
-    document.getElementById("list-points").innerHTML = ""
-    for (const p of listOfPoints) {
-        let firstTime = false
-        if (!p.id) {
-            firstTime = true
-            p.id = uuid()
-        }
-        const transformedP = transformPoint(p)
-        document.getElementById("list-points").innerHTML += `${p.x} ${p.y} <button id="edit-${p.id}">Modifier</button> <button id="delete-${p.id}">Supprimer</button> Transformé : (${round2(transformedP.x)}, ${round2(transformedP.y)}) <br/>`
-
-    }
-
-    for (const p of listOfPoints) {
-        document.getElementById(`delete-${p.id}`).addEventListener('click', () => {
-            console.log('delete', p.id)
-            deletePoint(p.id)
-        })
-
-        document.getElementById(`edit-${p.id}`).addEventListener('click', () => {
-            console.log('edit', p.id)
-            editPoint(p.id)
-        })
-    }
-}
-
-let editingPointId = null;
+export let editingPointId = null;
 
 function editPoint(id) {
     editingPointId = id;
-
 }
 
 function deletePoint(id) {
@@ -261,21 +201,8 @@ function addPoint(pos) {
     refreshCanvas()
 }
 
-
 let deCasteljauAnimationState = 0;
 let deCasteljauAnimationStateOrder = true;
-
-function disposeNode(child) {
-    if (child.geometry)
-        child.geometry.dispose()
-    if (child.material)
-        child.material.dispose()
-    if (child.children) {
-        for (const subchild of child.children) {
-            disposeNode(subchild)
-        }
-    }
-}
 
 export function refreshCanvas() {
     const s = settings;
@@ -286,7 +213,6 @@ export function refreshCanvas() {
             //console.log('ici ça skip', child)
             continue
         }
-
 
         disposeNode(child)
         scene.remove(child);
@@ -307,7 +233,6 @@ export function refreshCanvas() {
                 deCasteljauAnimationState += step;
                 if (deCasteljauAnimationState > 1)
                     deCasteljauAnimationStateOrder = false;
-
             } else {
                 deCasteljauAnimationState -= step;
                 if (deCasteljauAnimationState < 0)
@@ -317,85 +242,10 @@ export function refreshCanvas() {
         else {
             drawDeCasteljau(transformedPoints, 1, step)
         }
-        //animateDeCasteljau(transformedPoints)
     }
 }
 
-const axisGroup = new THREE.Group();
-axisGroup.name = "Axis";
-//Draws the axis with graduation 
-function drawAxisGraduation() {
-    const axisMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-    const gradSize = 0.15;     //Half of the size of a graduation
-
-    const Xpoints = [];
-    const Ypoints = [];
-
-    Xpoints.push(new THREE.Vector3(-window.innerWidth, 0, 0));
-    Xpoints.push(new THREE.Vector3(window.innerWidth, 0, 0));
-    Ypoints.push(new THREE.Vector3(0, -window.innerHeight, 0));
-    Ypoints.push(new THREE.Vector3(0, window.innerHeight, 0));
-
-    const Xgeometry = new THREE.BufferGeometry().setFromPoints(Xpoints);
-    const Ygeometry = new THREE.BufferGeometry().setFromPoints(Ypoints);
-
-    const Xline = new THREE.Line(Xgeometry, axisMaterial);
-    const Yline = new THREE.Line(Ygeometry, axisMaterial);
-
-    axisGroup.add(Xline);
-    axisGroup.add(Yline);
-
-
-    for (let i = 0; i < window.innerWidth; i++) {
-        let gradX = [];
-        let gradXNeg = [];
-
-        gradX.push(new THREE.Vector3(i, gradSize, 0));
-        gradX.push(new THREE.Vector3(i, -gradSize, 0));
-        gradXNeg.push(new THREE.Vector3(-i, gradSize, 0));
-        gradXNeg.push(new THREE.Vector3(-i, -gradSize, 0));
-
-        let gradXNegGeo = new THREE.BufferGeometry().setFromPoints(gradXNeg);
-        let gradXNegLine = new THREE.Line(gradXNegGeo, axisMaterial);
-        let gradXGeo = new THREE.BufferGeometry().setFromPoints(gradX);
-        let gradXLine = new THREE.Line(gradXGeo, axisMaterial);
-
-
-        axisGroup.add(gradXNegLine);
-        axisGroup.add(gradXLine);
-    }
-
-    for (let i = 0; i < window.innerHeight; i++) {
-        let gradY = [];
-        let gradYNeg = [];
-
-        gradY.push(new THREE.Vector3(gradSize, i, 0));
-        gradY.push(new THREE.Vector3(-gradSize, i, 0));
-        gradYNeg.push(new THREE.Vector3(gradSize, -i, 0));
-        gradYNeg.push(new THREE.Vector3(-gradSize, -i, 0));
-
-        let gradYNegGeo = new THREE.BufferGeometry().setFromPoints(gradYNeg);
-        let gradYNegLine = new THREE.Line(gradYNegGeo, axisMaterial);
-        let gradYGeo = new THREE.BufferGeometry().setFromPoints(gradY);
-        let gradYLine = new THREE.Line(gradYGeo, axisMaterial);
-
-        axisGroup.add(gradYNegLine);
-        axisGroup.add(gradYLine);
-    }
-    scene.add(axisGroup);
-}
-
-
-
-function updateAlgo(algo) {
-    console.log('updateAlgo', algo)
-    document.getElementById(algo).checked = true
-    currentMethod = algo
-}
-
-refreshCanvas();
-
-function transformPoint(point) {
+export function transformPoint(point) {
     const s = settings;
     const theta = s.rotationFactorDeg * Math.PI / 180;
     const translated = { x: point.x + s.translationX, y: point.y + s.translationY }
@@ -419,14 +269,11 @@ function getTransformedList(original) {
     })
 }
 
-
 updateList(listOfPoints)
 
-function round2(num) {
-    return Math.round(num * 100) / 100
-}
-
-drawAxisGraduation();
+const axisGroup = drawAxisGraduation();
+axisGroup.name="Axis";
+scene.add(axisGroup);
 // On appel la fonction une première fois pour initialiser
 animate();
 
@@ -434,49 +281,4 @@ setInterval(() => {
     //updateList()
 }, 500)
 
-// https://stackoverflow.com/a/56416622
-export function clickEventToWorldCoords(e) {
-    console.log(e)
-    // get x,y coords into canvas where click occurred
-    const rect = canvas.getBoundingClientRect(),
-        x = e.clientX - rect.left,
-        y = e.clientY - rect.top;
-    // convert x,y to clip space; coords from top left, clockwise:
-    // (-1,1), (1,1), (-1,-1), (1, -1)
-    const mouse = new THREE.Vector3();
-    mouse.x = ((x / canvas.clientWidth) * 2) - 1;
-    mouse.y = (-(y / canvas.clientHeight) * 2) + 1;
-    mouse.z = 0.5; // set to z position of mesh objects
-    // reverse projection from 3D to screen
-    mouse.unproject(camera);
-    // convert from point to a direction
-    mouse.sub(camera.position).normalize();
-    // scale the projected ray
-    const distance = -camera.position.z / mouse.z,
-        scaled = mouse.multiplyScalar(distance),
-        coords = camera.position.clone().add(scaled);
-    console.log('coords', coords)
-    return coords;
-}
 
-export function handleClick(e) {
-    const coords = clickEventToWorldCoords(e)
-    if (!editingPointId)
-        addPoint(coords)
-    else {
-        const point = listOfPoints.find(e => e.id == editingPointId)
-        if (point) {
-            point.x = coords.x
-            point.y = coords.y
-            updateList()
-        }
-        else {
-            addPoint(coords)
-        }
-    }
-}
-
-export function deleteAllPoints() {
-    listOfPoints = []
-    updateList()
-}

@@ -1,5 +1,4 @@
-
-import { handleClick, deleteAllPoints } from "./courbesBezier.js"
+import { handleClick, deleteAllPoints } from "./gui.js"
 
 //TODO faut checker les inputs pour etre sure que c des nombres
 function manageInputGroup(domId, object, prop) {
@@ -31,11 +30,11 @@ export class Settings {
 
 	animationDecasteljau = true
 
-
-	constructor() {
+	constructor(canvas, camera) {
 		if (Settings._instance) {
 			return Settings._instance
 		}
+
 		Settings._instance = this;
 
 		manageInputGroup('translation-x', this, 'translationX')
@@ -72,7 +71,7 @@ export class Settings {
 
 		document.getElementById('canvas').addEventListener('click', event => {
 			console.log('click', event)
-			handleClick(event)
+			handleClick(event, canvas, camera)
 		})
 
 		document.getElementById('reset-points').addEventListener('click', () => {
