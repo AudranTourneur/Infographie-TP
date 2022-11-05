@@ -3,27 +3,6 @@
   <head>
     <meta charset="utf-8" />
     <title>three.js app</title>
-    <style>
-      body {
-        margin: 0;
-      }
-
-      #container {
-        position: absolute;
-        background: #7cb9e8;
-        /*background: rgb(225, 118, 109);*/
-        /*background: linear-gradient(90deg, hsl(230, 100%, 50%), hsl(240, 100%, 50%));*/
-        z-index: 1;
-        left: 0;
-        top: 0;
-        padding: 1.5%;
-      }
-
-      .input-group {
-        display: flex;
-        flex-direction: row;
-      }
-    </style>
     <link rel="stylesheet" href="style.css" />
   </head>
 
@@ -40,32 +19,22 @@
         Liste des points :
         <div id="list-points"></div>
       </div>
+      <button id="reset-points">Supprimer tous les points</button>
       <br />
 
       <fieldset>
         <legend>Choisir l'algorithme à utiliser:</legend>
 
         <div id="div-bernstein">
-          <input
-            type="radio"
-            id="bernstein"
-            name="algo"
-            value="bernstein"
-          />
-          <label for="dewey">Bernstein</label>
+          <input type="radio" id="radio-bernstein" name="algo" checked/>
+          <label>Bernstein</label>
         </div>
 
-        <div id="div-bernstein">
-          <input
-            type="radio"
-            id="decastleljau"
-            name="algo"
-            value="decastleljau"
-            checked
-          />
-          <label for="huey">De Casteljau</label>
+        <div id="div-decasteljau">
+          <input type="radio" id="radio-decastleljau" name="algo" />
+          <label>De Casteljau</label>
           <div>
-            <input type="checkbox" id="decastleljau-animation" checked />
+            <input type="checkbox" id="animation-decastleljau" checked />
             Animation De Casteljau
           </div>
         </div>
@@ -91,7 +60,13 @@
           Facteur d'homothétie
           <input type="text" id="scale-factor" value="1" />
           <div>
-            <input type="range" id="slider-scale-factor" min="-5" max="5" step="0.1"/>
+            <input
+              type="range"
+              id="slider-scale-factor"
+              min="-5"
+              max="5"
+              step="0.1"
+            />
           </div>
         </div>
 
@@ -99,35 +74,54 @@
           Angle de rotation (deg)
           <input type="text" id="rotation-factor" value="0" />
           <div>
-            <input type="range" id="slider-rotation-factor" min="-360" max="360" />
+            <input
+              type="range"
+              id="slider-rotation-factor"
+              min="-360"
+              max="360"
+            />
           </div>
         </div>
         <div class="input-group">
           Centre de rotation X
           <input type="text" id="rotation-center-x" value="0" />
           <div>
-            <input type="range" id="slider-rotation-center-x" min="-30" max="30" />
+            <input
+              type="range"
+              id="slider-rotation-center-x"
+              min="-30"
+              max="30"
+            />
           </div>
         </div>
         <div class="input-group">
           Centre de rotation Y
           <input type="text" id="rotation-center-y" value="0" />
           <div>
-            <input type="range" id="slider-rotation-center-y" min="-30" max="30" />
+            <input
+              type="range"
+              id="slider-rotation-center-y"
+              min="-30"
+              max="30"
+            />
           </div>
         </div>
       </div>
 
       <button id="reset-transformation">Remettre à zéro</button>
-    
+
+      <div>
+        Polynôme de Bernstein
+
+        <canvas id="canvas-polynomes"></canvas>
+      </div>
     </div>
 
-    <!-- Trigger/Open The Modal -->
-    <button id="btn-modal">Open Modal</button>
+    <canvas id="canvas"></canvas>
 
-    <!-- The Modal -->
+    <!--  The Modal 
     <div id="modal-edit" class="modal">
-      <!-- Modal content -->
+      Modal content 
       <div class="modal-content">
         <span class="close">&times;</span>
         <p>Entrez les nouvelles valeurs pour le point :</p>
@@ -136,16 +130,15 @@
         <button id="input-edit-confirm">OK</button>
       </div>
     </div>
+    --->
 
     <script type="module" src="three.js"></script>
-    <script src="jquery.min.js"></script>
+    <script type="module" src="utils.js"></script>
     <script type="module" src="courbesBezier.js"></script>
+    <script type="module" src="polynomes.js"></script>
     <script src="gui.js"></script>
     <!--<script src="input.js"></script>-->
 
     <script type="module" src="input.js"></script>
-    <script type="module" src="f.js"></script>
-
-
   </body>
 </html>

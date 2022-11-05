@@ -1,3 +1,7 @@
+
+import { handleClick, deleteAllPoints } from "./courbesBezier.js"
+
+//TODO faut checker les inputs pour etre sure que c des nombres
 function manageInputGroup(domId, object, prop) {
 	const inputBox = document.getElementById(domId)
 	const inputSlider = document.getElementById('slider-' + domId)
@@ -22,7 +26,11 @@ export class Settings {
 	rotationFactorDeg = 0;
 	rotationCenterX = 0;
 	rotationCenterY = 0;
-	
+
+	selectedAlgorithm = 'bernstein'
+
+	animationDecasteljau = true
+
 
 	constructor() {
 		if (Settings._instance) {
@@ -46,6 +54,29 @@ export class Settings {
 			this.rotationFactorDeg = 0;
 			this.rotationCenterX = 0;
 			this.rotationCenterY = 0;
+		})
+
+		document.getElementById('div-bernstein').addEventListener('click', () => {
+			this.selectedAlgorithm = 'bernstein'
+			document.getElementById('radio-bernstein').checked = true
+		})
+
+		document.getElementById('div-decasteljau').addEventListener('click', () => {
+			this.selectedAlgorithm = 'decasteljau'
+			document.getElementById('radio-decastleljau').checked = true
+		})
+
+		document.getElementById('animation-decastleljau').addEventListener('click', event => {
+			this.animationDecasteljau = event.target.checked
+		})
+
+		document.getElementById('canvas').addEventListener('click', event => {
+			console.log('click', event)
+			handleClick(event)
+		})
+
+		document.getElementById('reset-points').addEventListener('click', () => {
+			deleteAllPoints()
 		})
 	}
 }

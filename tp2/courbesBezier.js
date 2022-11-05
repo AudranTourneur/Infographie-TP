@@ -1,22 +1,28 @@
 import { Settings } from './input.js'
-
-
+import { uuid } from './utils.js'
 
 // Instanciation du renderer (moteur de rendu)
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas') });
 // On ajoute le moteur au DOM
-document.body.appendChild(renderer.domElement);
+//document.body.appendChild(renderer.domElement);
 
 // On met le renderer à taille de la fenêtre du naviguateur
-renderer.setSize(window.innerWidth, window.innerHeight);
+//renderer.setSize(window.innerWidth, window.innerHeight);
+const canvas = document.getElementById('canvas')
+console.log('canvas', canvas, canvas.innerWidth)
+//renderer.setSize(canvas.offsetWidth, window.innerHeight);
+
+const desiredWidth = window.innerWidth * 3 / 4
+const desiredHeight = window.innerHeight
+
+renderer.setSize(desiredWidth, desiredHeight);
 
 // Création d'une caméra (mode perspective) avec arguments respectivement :
 // FOV : 45 (field of view, champ de vision) 
 // Ratio d'aspect (longueur sur hauteur de la fenêtre)
 // "Near": Distance minimale à laquelle les objets seront affichés
 // "Far": Distance maximale à laquelle les objets seront affichés
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight,
-    0.5, 1000);
+const camera = new THREE.PerspectiveCamera(45, desiredWidth / desiredHeight, 0.5, 1000);
 
 // Instanciation de la scène
 const scene = new THREE.Scene();
@@ -46,7 +52,7 @@ document.addEventListener('pointerdown', e => {
 
 const settings = new Settings()
 
-const listOfPoints = [
+let listOfPoints = [
     { x: 0, y: 0 },
     { x: 0, y: 20 },
     { x: 20, y: 20 },
@@ -63,39 +69,33 @@ const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff })
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
 //list of strings of our bernestein polynomes
-const polyNomeBernestein=[];
-
-
+export const polyNomeBernestein = [];
 
 function bernstein(n, i, t) {
     // i ème polynôme de Bernstein évalué en un t entre 0 et 1
     const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
-    if((polyNomeBernestein.length-1)!=n){
-        let bernesteinPolyString=choose(n,i)+" * t^"+i+" * (1-t)^"+(n-i);
-        
-        let bernesteinPolyPoints=[];
-        for(let t=0;t<=1;t+=0.01){
-            let y=choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
-            bernesteinPolyPoints.push(new THREE.Vector3(t, y, 0));
+    if ((polyNomeBernestein.length - 1) != n) {
+        //Si on reecrit une courbe on efface les anciennes pour la memoire
+        if (polyNomeBernestein.curve) {
+            polyNomeBernestein.curve.material.dispose();
+            polyNomeBernestein.curve.geometry.dispose();
         }
-        const bernesteinGeometry = new THREE.BufferGeometry().setFromPoints(bernesteinPolyPoints);
-        const bernesteinCurve = new THREE.Line(bernesteinGeometry, redMaterial);
-    
-        polyNomeBernestein[i]=({string:bernesteinPolyString,curve:bernesteinCurve});
-        console.table(polyNomeBernestein);
+
+
+
+        let bernesteinPolyString = choose(n, i) + " * t^" + i + " * (1-t)^" + (n - i);
+
+        let bernesteinPolyPoints = [];
+        for (let t = 0; t <= 1; t += 0.01) {
+            let y = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
+            bernesteinPolyPoints.push({ x: t, y: y });
+        }
+
+        polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
+        //console.table(polyNomeBernestein);
     }
     return bernstein;
 }
-
-const BernesteinCurveGroup= new THREE.Group();
-BernesteinCurveGroup.name="BernesteinCurveGroup";
-function drawBernesteinPoly(){
-    polyNomeBernestein.forEach(e =>{
-        BernesteinCurveGroup.add(e.curve)
-    })
-    scene.add(BernesteinCurveGroup);
-}
-
 
 function drawBernstein(points) {
     const step = 0.01
@@ -108,8 +108,8 @@ function drawBernstein(points) {
 
 
         for (let i = 0; i <= n; i++) {
-            sumX += points[i].x * bernstein(n,i, t)
-            sumY += points[i].y * bernstein(n,i, t)
+            sumX += points[i].x * bernstein(n, i, t)
+            sumY += points[i].y * bernstein(n, i, t)
         }
 
         bezierPoints.push({
@@ -203,18 +203,38 @@ async function animateDeCasteljau(points) {
 function updateList() {
     document.getElementById("list-points").innerHTML = ""
     for (const p of listOfPoints) {
+        let firstTime = false
+        if (!p.id) {
+            firstTime = true
+            p.id = uuid()
+        }
         const transformedP = transformPoint(p)
-        document.getElementById("list-points").innerHTML += `${p.x} ${p.y} <button onclick="editPoint(${p.x}, ${p.y})">Modifier</button> <button onclick="deletePoint(${p.x}, ${p.y})">Supprimer</button> Transformé : (${round2(transformedP.x)}, ${round2(transformedP.y)}) <br/>`
+        document.getElementById("list-points").innerHTML += `${p.x} ${p.y} <button id="edit-${p.id}">Modifier</button> <button id="delete-${p.id}">Supprimer</button> Transformé : (${round2(transformedP.x)}, ${round2(transformedP.y)}) <br/>`
+
+    }
+
+    for (const p of listOfPoints) {
+        document.getElementById(`delete-${p.id}`).addEventListener('click', () => {
+            console.log('delete', p.id)
+            deletePoint(p.id)
+        })
+
+        document.getElementById(`edit-${p.id}`).addEventListener('click', () => {
+            console.log('edit', p.id)
+            editPoint(p.id)
+        })
     }
 }
 
-function editPoint(x, y) {
-    var modal = document.getElementById("modal-edit");
-    modal.style.display = "block";
+let editingPointId = null;
+
+function editPoint(id) {
+    editingPointId = id;
+
 }
 
-function deletePoint(x, y) {
-    const res = listOfPoints.find(p => p.x == x && p.y == y)
+function deletePoint(id) {
+    const res = listOfPoints.find(p => p.id == id)
     if (!res) return
     const index = listOfPoints.indexOf(res)
     if (index != -1)
@@ -235,60 +255,12 @@ document.getElementById("input-add").addEventListener('click', () => {
     refreshCanvas()
 })
 
-//TODO faut checker les inputs pour etre sure que c des nombres
-
-let translationX = 0;
-//Translation par x de notre liste des points
-document.getElementById("translation-x").addEventListener('change', () => {
-    translationX = Number(document.getElementById("translation-x").value);
+function addPoint(pos) {
+    listOfPoints.push(pos);
+    updateList(listOfPoints)
     refreshCanvas()
-    updateList();
-})
+}
 
-let translationY = 0;
-//Tranlsation par y de notre liste de point
-document.getElementById("translation-y").addEventListener('change', () => {
-    translationY = Number(document.getElementById("translation-y").value);
-    refreshCanvas()
-    updateList();
-})
-
-let scaleFactor = 1;
-
-document.getElementById("scale-factor").addEventListener('change', () => {
-    scaleFactor = Number(document.getElementById("scale-factor").value);
-    refreshCanvas();
-    updateList();
-})
-
-let rotationFactorDeg = 0;
-
-document.getElementById("rotation-factor").addEventListener('change', (event) => {
-    rotationFactorDeg = Number(event.target.value)
-    // https://en.wikipedia.org/wiki/Rotation_matrix
-    refreshCanvas()
-    updateList();
-})
-
-let rotationCenterX = 0;
-//Translation par x de notre liste des points
-document.getElementById("rotation-center-x").addEventListener('change', (event) => {
-    rotationCenterX = Number(event.target.value);
-    refreshCanvas()
-    updateList();
-})
-
-let rotationCenterY = 0;
-//Tranlsation par y de notre liste de point
-document.getElementById("rotation-center-y").addEventListener('change', (event) => {
-    rotationCenterY = Number(event.target.value);
-    refreshCanvas()
-    updateList();
-})
-
-
-let currentMethod = 'bernstein' // or 'decasteljau'
-//let currentMethod = 'decasteljau' // or 'decasteljau'
 
 let deCasteljauAnimationState = 0;
 let deCasteljauAnimationStateOrder = true;
@@ -306,6 +278,9 @@ function disposeNode(child) {
 }
 
 export function refreshCanvas() {
+    const s = settings;
+    //if (s.selectedAlgorithm == 'bernstein' && Math.random() > 0.2) return;
+
     for (const child of scene.children) {
         if (child == scene.getObjectByName("Axis")) {
             //console.log('ici ça skip', child)
@@ -317,27 +292,30 @@ export function refreshCanvas() {
         scene.remove(child);
     }
 
-    //console.log('refresh using method', currentMethod)
-
     const transformedPoints = getTransformedList(listOfPoints)
     drawControlPoints(transformedPoints);
-
-    if (currentMethod == 'bernstein') {
+    if (s.selectedAlgorithm == 'bernstein') {
         drawBernstein(transformedPoints);
-    }
-    else {
-        drawDeCasteljau(transformedPoints, deCasteljauAnimationState, 0.1)
-        const step = 0.025
-        //console.log(deCasteljauAnimationStateOrder)
-        if (deCasteljauAnimationStateOrder) {
-            deCasteljauAnimationState += step;
-            if (deCasteljauAnimationState > 1)
-                deCasteljauAnimationStateOrder = false;
 
-        } else {
-            deCasteljauAnimationState -= step;
-            if (deCasteljauAnimationState < 0)
-                deCasteljauAnimationStateOrder = true;
+    }
+    else if (s.selectedAlgorithm == 'decasteljau') {
+        const step = 0.025
+        if (s.animationDecasteljau) {
+            drawDeCasteljau(transformedPoints, deCasteljauAnimationState, step)
+            //console.log(deCasteljauAnimationStateOrder)
+            if (deCasteljauAnimationStateOrder) {
+                deCasteljauAnimationState += step;
+                if (deCasteljauAnimationState > 1)
+                    deCasteljauAnimationStateOrder = false;
+
+            } else {
+                deCasteljauAnimationState -= step;
+                if (deCasteljauAnimationState < 0)
+                    deCasteljauAnimationStateOrder = true;
+            }
+        }
+        else {
+            drawDeCasteljau(transformedPoints, 1, step)
         }
         //animateDeCasteljau(transformedPoints)
     }
@@ -453,5 +431,52 @@ drawAxisGraduation();
 animate();
 
 setInterval(() => {
-    updateList()
+    //updateList()
 }, 500)
+
+// https://stackoverflow.com/a/56416622
+export function clickEventToWorldCoords(e) {
+    console.log(e)
+    // get x,y coords into canvas where click occurred
+    const rect = canvas.getBoundingClientRect(),
+        x = e.clientX - rect.left,
+        y = e.clientY - rect.top;
+    // convert x,y to clip space; coords from top left, clockwise:
+    // (-1,1), (1,1), (-1,-1), (1, -1)
+    const mouse = new THREE.Vector3();
+    mouse.x = ((x / canvas.clientWidth) * 2) - 1;
+    mouse.y = (-(y / canvas.clientHeight) * 2) + 1;
+    mouse.z = 0.5; // set to z position of mesh objects
+    // reverse projection from 3D to screen
+    mouse.unproject(camera);
+    // convert from point to a direction
+    mouse.sub(camera.position).normalize();
+    // scale the projected ray
+    const distance = -camera.position.z / mouse.z,
+        scaled = mouse.multiplyScalar(distance),
+        coords = camera.position.clone().add(scaled);
+    console.log('coords', coords)
+    return coords;
+}
+
+export function handleClick(e) {
+    const coords = clickEventToWorldCoords(e)
+    if (!editingPointId)
+        addPoint(coords)
+    else {
+        const point = listOfPoints.find(e => e.id == editingPointId)
+        if (point) {
+            point.x = coords.x
+            point.y = coords.y
+            updateList()
+        }
+        else {
+            addPoint(coords)
+        }
+    }
+}
+
+export function deleteAllPoints() {
+    listOfPoints = []
+    updateList()
+}
