@@ -62,26 +62,54 @@ const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff })
 
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
+//list of strings of our bernestein polynomes
+const polyNomeBernestein=[];
+
+
+
+function bernstein(n, i, t) {
+    // i ème polynôme de Bernstein évalué en un t entre 0 et 1
+    const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
+    if((polyNomeBernestein.length-1)!=n){
+        let bernesteinPolyString=choose(n,i)+" * t^"+i+" * (1-t)^"+(n-i);
+        
+        let bernesteinPolyPoints=[];
+        for(let t=0;t<=1;t+=0.01){
+            let y=choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
+            bernesteinPolyPoints.push(new THREE.Vector3(t, y, 0));
+        }
+        const bernesteinGeometry = new THREE.BufferGeometry().setFromPoints(bernesteinPolyPoints);
+        const bernesteinCurve = new THREE.Line(bernesteinGeometry, redMaterial);
+    
+        polyNomeBernestein[i]=({string:bernesteinPolyString,curve:bernesteinCurve});
+        console.table(polyNomeBernestein);
+    }
+    return bernstein;
+}
+
+const BernesteinCurveGroup= new THREE.Group();
+BernesteinCurveGroup.name="BernesteinCurveGroup";
+function drawBernesteinPoly(){
+    polyNomeBernestein.forEach(e =>{
+        BernesteinCurveGroup.add(e.curve)
+    })
+    scene.add(BernesteinCurveGroup);
+}
+
+
 function drawBernstein(points) {
     const step = 0.01
     const n = points.length - 1;
 
-    function bernstein(i, t) {
-        // i ème polynôme de Bernstein évalué en un t entre 0 et 1
-        const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
-        return bernstein;
-    }
-
     const bezierPoints = []
-
     for (let t = 0; t < 1; t += step) {
         let sumX = 0;
         let sumY = 0;
 
 
         for (let i = 0; i <= n; i++) {
-            sumX += points[i].x * bernstein(i, t)
-            sumY += points[i].y * bernstein(i, t)
+            sumX += points[i].x * bernstein(n,i, t)
+            sumY += points[i].y * bernstein(n,i, t)
         }
 
         bezierPoints.push({
@@ -99,21 +127,17 @@ function drawBernstein(points) {
     scene.add(curve)
 }
 
+// Création d'un matériau de couleur vert
+const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 3 })
 
 function drawControlPoints(controlPoints) {
-    const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 1));
-
-    // Géomtrie du triangle
+    const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
     const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
-
-    // Mesh du triangle qui sera affiché
     const controlPolygon = new THREE.Line(polyGeom, controlMaterial);
-
     scene.add(controlPolygon)
 }
 
-// Création d'un matériau de couleur vert
-const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 3 })
+
 
 function animate() {
     // On demande au naviguateur d'éxecuter cette fonction en continue (60 fois par seconde en général)
@@ -263,8 +287,8 @@ document.getElementById("rotation-center-y").addEventListener('change', (event) 
 })
 
 
-//let currentMethod = 'bernstein' // or 'decasteljau'
-let currentMethod = 'decasteljau' // or 'decasteljau'
+let currentMethod = 'bernstein' // or 'decasteljau'
+//let currentMethod = 'decasteljau' // or 'decasteljau'
 
 let deCasteljauAnimationState = 0;
 let deCasteljauAnimationStateOrder = true;
@@ -293,7 +317,7 @@ export function refreshCanvas() {
         scene.remove(child);
     }
 
-    console.log('refresh using method', currentMethod)
+    //console.log('refresh using method', currentMethod)
 
     const transformedPoints = getTransformedList(listOfPoints)
     drawControlPoints(transformedPoints);
