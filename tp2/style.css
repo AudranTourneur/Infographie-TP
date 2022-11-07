@@ -45,8 +45,9 @@ body {
 }
 
 #container {
+  /*
   background: #7cb9e8;
-  /*background: rgb(225, 118, 109);*/
+  background: rgb(225, 118, 109);*/
   /*background: linear-gradient(90deg, hsl(230, 100%, 50%), hsl(240, 100%, 50%));*/
   z-index: 1;
   left: 0;
@@ -59,4 +60,10 @@ body {
 .input-group {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+
+}
+
+.input-group {
+  display: flex;
 }

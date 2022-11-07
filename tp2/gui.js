@@ -1,4 +1,5 @@
-import { listOfPoints, transformPoint, refreshCanvas } from "./courbesBezier.js"
+import { listOfControlStructures, transformPoint, refreshCanvas } from "./courbesBezier.js"
+import { Settings } from "./input.js"
 import { uuid, round2 } from './utils.js'
 import { clickEventToWorldCoords } from "./utils.js"
 
@@ -24,20 +25,23 @@ window.onclick = function(event) {
   }
 }*/
 
-export function updateList() {
+export function updateList(list) {
+  const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
+  console.log('curve is ', curve)
+
   document.getElementById("list-points").innerHTML = ""
-  for (const p of listOfPoints) {
+  for (const p of list) {
     let firstTime = false
     if (!p.id) {
       firstTime = true
       p.id = uuid()
     }
     const transformedP = transformPoint(p)
-    document.getElementById("list-points").innerHTML += `${p.x} ${p.y} <button id="edit-${p.id}">Modifier</button> <button id="delete-${p.id}">Supprimer</button> Transformé : (${round2(transformedP.x)}, ${round2(transformedP.y)}) <br/>`
+    document.getElementById("list-points").innerHTML += `<div class="badge badge-lg">(X=${round2(p.x)} | Y=${round2(p.y)})</div> <button class="text text-info" id="edit-${p.id}">Modifier</button> <button class="text text-error" id="delete-${p.id}">Supprimer</button> Transformé : (${round2(transformedP.x)}, ${round2(transformedP.y)}) <br/>`
 
   }
 
-  for (const p of listOfPoints) {
+  for (const p of curve) {
     document.getElementById(`delete-${p.id}`).addEventListener('click', () => {
       console.log('delete', p.id)
       deletePoint(p.id)
@@ -51,19 +55,20 @@ export function updateList() {
 }
 
 export function deleteAllPoints() {
-  listOfPoints = []
+  const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
+  curve.splice(0, curve.length)
   updateList()
 }
 
 export let editingPointId = null;
 
 export function handleClick(e, canvas, camera) {
-  console.log('ici', camera, canvas)
+  const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
   const coords = clickEventToWorldCoords(e, canvas, camera)
   if (!editingPointId)
     addPoint(coords)
   else {
-    const point = listOfPoints.find(e => e.id == editingPointId)
+    const point = curve.find(e => e.id == editingPointId)
     if (point) {
       point.x = coords.x
       point.y = coords.y
@@ -77,22 +82,23 @@ export function handleClick(e, canvas, camera) {
 }
 
 function addPoint(pos) {
-  listOfPoints.push(pos);
-  updateList(listOfPoints)
+  const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
+  curve.push(pos);
+  updateList(curve)
   refreshCanvas()
 }
-
 
 function editPoint(id) {
   editingPointId = id;
 }
 
 function deletePoint(id) {
-  const res = listOfPoints.find(p => p.id == id)
+  const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
+  const res = curve.find(p => p.id == id)
   if (!res) return
-  const index = listOfPoints.indexOf(res)
+  const index = curve.indexOf(res)
   if (index != -1)
-    listOfPoints.splice(index, 1)
+    curve.splice(index, 1)
   updateList()
   refreshCanvas()
 }

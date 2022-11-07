@@ -1,6 +1,7 @@
 import { polyNomeBernestein } from "./courbesBezier.js";
-let poly = polyNomeBernestein;
-console.log(poly);
+import {disposeNode} from "./utils.js";
+
+
 
 const canvas = document.getElementById('canvas-polynomes')
 const renderer = new THREE.WebGLRenderer({ canvas });
@@ -24,35 +25,27 @@ scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
-
-const bernsteinCurveGroup = new THREE.Group();
-bernsteinCurveGroup.name = "bernsteinCurveGroup";
-
 function drawbernsteinPoly() {
-	let bernsteinPolyPoints = []
-	poly.forEach(elt => {
+	polyNomeBernestein.forEach(elt => {
+		let bernsteinPolyPoints = []
 		elt.points.forEach(e => {
 			bernsteinPolyPoints.push(new THREE.Vector3(e.x, e.y, 0))
 		})
+		const bernsteinGeometry = new THREE.BufferGeometry().setFromPoints(bernsteinPolyPoints);
+		const bernsteinCurve = new THREE.Line(bernsteinGeometry, redMaterial);
+		scene.add(bernsteinCurve);
 	})
-
-	const bernsteinGeometry = new THREE.BufferGeometry().setFromPoints(bernsteinPolyPoints);
-	const bernsteinCurve = new THREE.Line(bernsteinGeometry, redMaterial);
-	bernsteinCurveGroup.add(bernsteinCurve);
-
-	scene.add(bernsteinCurveGroup);
 }
 
-console.log(bernsteinCurveGroup)
-
-
-
-function removebernsteinPoly() {
-	scene.remove(scene.findObjectByName("bernsteinCurveGroup"));
+function refreshCanvas(){
+	for(const child of scene.children){
+		disposeNode(child);
+		scene.remove(child);
+	}
+	drawbernsteinPoly();
 }
 
 setInterval(() => {
-	drawbernsteinPoly();
-    
+	refreshCanvas();
 	renderer.render(scene, camera);
 }, 1000);

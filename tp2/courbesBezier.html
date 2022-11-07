@@ -1,125 +1,170 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>three.js app</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
 
-  <body>
-    <div id="container">
-      <h1>Paramètres</h1>
-      <input id="input-x" type="text" />
-      <input id="input-y" type="text" />
-      <button id="input-add">Ajouter</button>
-      <button id="input-start">Start</button>
+<head>
+  <meta charset="utf-8" />
+  <title>three.js app</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@2.38.1/dist/full.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body>
+  <div id="container">
+
+
+
+
+    <div class="divider"></div>
+
+
+    <div class="tabs">
+      <a id="tab-1" class="tab tab-bordered tab-active">Courbe 1</a>
+      <a id="tab-2" class="tab tab-bordered">Courbe 2</a>
+      <a id="tab-3" class="tab tab-bordered">Courbe 3</a>
+    </div>
+    <div class="bg-base-200 p-4">
+
+
+      <input id="is-curve-visible" type="checkbox" class="toggle toggle-success" checked /> Afficher la courbe
+
+      <h1 class="text-xl" id="title-params">Paramètres de la courbe 1</h1>
+      Ajouter un point
+      <br>
+      X
+      <input class="input input-bordered input-sm input-info w-full" id="input-x" type="text" />
+      Y
+      <input class="input input-bordered input-sm input-info w-full" id="input-y" type="text" />
+      <button class="btn btn-primary" id="input-add">Ajouter</button>
 
       <br />
       <div>
         Liste des points :
         <div id="list-points"></div>
       </div>
-      <button id="reset-points">Supprimer tous les points</button>
+      <button class="btn btn-error" id="reset-points">Supprimer tous les points</button>
       <br />
 
       <fieldset>
         <legend>Choisir l'algorithme à utiliser:</legend>
 
         <div id="div-bernstein">
-          <input type="radio" id="radio-bernstein" name="algo" checked/>
+          <input class="radio radio-success" type="radio" id="radio-bernstein" name="algo" checked />
           <label>Bernstein</label>
         </div>
 
         <div id="div-decasteljau">
-          <input type="radio" id="radio-decastleljau" name="algo" />
+          <input class="radio radio-success" type="radio" id="radio-decastleljau" name="algo" />
           <label>De Casteljau</label>
           <div>
-            <input type="checkbox" id="animation-decastleljau" checked />
+            <input class="checkbox checkbox-success" type="checkbox" id="animation-decastleljau" checked />
             Animation De Casteljau
           </div>
         </div>
       </fieldset>
 
-      <div>
-        <h2>Transformations</h2>
+    </div>
+
+    <div class="divider"></div>
+
+    <div>
+      <h2 class="text-lg">Transformations</h2>
+      <div class="flex flex-col align-center">
         <div class="input-group">
-          Translation X
-          <input type="text" id="translation-x" value="0" />
+          <div class="w-40">
+            Translation X
+          </div>
+          <div class="w-20">
+            <input class="input input-bordered input-sm input-info w-full" type="text" id="translation-x" value="0" />
+          </div>
           <div>
-            <input type="range" id="slider-translation-x" min="-30" max="30" />
+            <input class="range range-info" type="range" id="slider-translation-x" min="-30" max="30" />
           </div>
         </div>
         <div class="input-group">
-          Translation Y
-          <input type="text" id="translation-y" value="0" />
+
+          <div class="w-40">
+            Translation Y
+          </div>
+
+          <div class="w-20">
+            <input class="input input-bordered input-sm input-info w-full" type="text" id="translation-y" value="0" />
+          </div>
           <div>
-            <input type="range" id="slider-translation-y" min="-30" max="30" />
+            <input class="range range-info" type="range" id="slider-translation-y" min="-30" max="30" />
           </div>
         </div>
         <div class="input-group">
-          Facteur d'homothétie
-          <input type="text" id="scale-factor" value="1" />
+          <div class="w-40">
+            Facteur d'homothétie
+          </div>
+          <div class="w-20">
+            <input class="input input-bordered input-sm input-info w-full" type="text" id="scale-factor" value="1" />
+          </div>
           <div>
-            <input
-              type="range"
-              id="slider-scale-factor"
-              min="-5"
-              max="5"
-              step="0.1"
-            />
+            <input class="range range-info" type="range" id="slider-scale-factor" min="-5" max="5" step="0.1" />
           </div>
         </div>
 
         <div class="input-group">
-          Angle de rotation (deg)
-          <input type="text" id="rotation-factor" value="0" />
+
+          <div class="w-40">
+            Angle de rotation (deg)
+          </div>
+
+          <div class="w-20">
+            <input class="input input-bordered input-sm input-info w-full" type="text" id="rotation-factor" value="0" />
+          </div>
           <div>
-            <input
-              type="range"
-              id="slider-rotation-factor"
-              min="-360"
-              max="360"
-            />
+            <input class="range range-info" type="range" id="slider-rotation-factor" min="-360" max="360" />
           </div>
         </div>
         <div class="input-group">
-          Centre de rotation X
-          <input type="text" id="rotation-center-x" value="0" />
+
+          <div class="w-40">
+            Centre de rotation X
+          </div>
+
+          <div class="w-20">
+            <input class="input input-bordered input-sm input-info w-full" type="text" id="rotation-center-x"
+              value="0" />
+          </div>
           <div>
-            <input
-              type="range"
-              id="slider-rotation-center-x"
-              min="-30"
-              max="30"
-            />
+            <input class="range range-info" type="range" id="slider-rotation-center-x" min="-30" max="30" />
           </div>
         </div>
         <div class="input-group">
-          Centre de rotation Y
-          <input type="text" id="rotation-center-y" value="0" />
+
+          <div class="w-40">
+            Centre de rotation Y
+          </div>
+
+          <div class="w-20">
+            <input class="input input-bordered input-sm input-info w-full" type="text" id="rotation-center-y"
+              value="0" />
+          </div>
           <div>
-            <input
-              type="range"
-              id="slider-rotation-center-y"
-              min="-30"
-              max="30"
-            />
+            <input class="range range-info" type="range" id="slider-rotation-center-y" min="-30" max="30" />
           </div>
         </div>
-      </div>
-
-      <button id="reset-transformation">Remettre à zéro</button>
-
-      <div>
-        Polynôme de Bernstein
-
-        <canvas id="canvas-polynomes"></canvas>
       </div>
     </div>
 
-    <canvas id="canvas"></canvas>
+    <button class="btn btn-primary" id="reset-transformation">Remettre à zéro</button>
 
-    <!--  The Modal 
+    <div class="divider"></div>
+
+    <div>
+      Polynôme de Bernstein
+
+      <canvas id="canvas-polynomes"></canvas>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <!--  The Modal 
     <div id="modal-edit" class="modal">
       Modal content 
       <div class="modal-content">
@@ -132,13 +177,14 @@
     </div>
     --->
 
-    <script type="module" src="three.js"></script>
-    <script type="module" src="utils.js"></script>
-    <script type="module" src="courbesBezier.js"></script>
-    <script type="module" src="polynomes.js"></script>
-    <script type="module" src="gui.js"></script>
-    <!--<script src="input.js"></script>-->
+  <script type="module" src="three.js"></script>
+  <script type="module" src="utils.js"></script>
+  <script type="module" src="courbesBezier.js"></script>
+  <script type="module" src="polynomes.js"></script>
+  <script type="module" src="gui.js"></script>
+  <!--<script src="input.js"></script>-->
 
-    <script type="module" src="input.js"></script>
-  </body>
+  <script type="module" src="input.js"></script>
+</body>
+
 </html>

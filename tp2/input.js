@@ -1,3 +1,4 @@
+import { listOfControlStructures } from "./courbesBezier.js"
 import { handleClick, deleteAllPoints } from "./gui.js"
 
 //TODO faut checker les inputs pour etre sure que c des nombres
@@ -29,6 +30,8 @@ export class Settings {
 	selectedAlgorithm = 'bernstein'
 
 	animationDecasteljau = true
+
+	currentlySelectedTab = 1;
 
 	constructor(canvas, camera) {
 		if (Settings._instance) {
@@ -77,5 +80,40 @@ export class Settings {
 		document.getElementById('reset-points').addEventListener('click', () => {
 			deleteAllPoints()
 		})
+
+
+		const tabs = [1, 2, 3]
+		for (const tabId of tabs) {
+			document.getElementById(`tab-${tabId}`).addEventListener('click', () => {
+				console.log('tab+' + tabId)
+
+				document.getElementById(`tab-${this.currentlySelectedTab}`).classList.toggle('tab-active')
+				this.currentlySelectedTab = tabId
+				document.getElementById(`tab-${this.currentlySelectedTab}`).classList.toggle('tab-active')
+
+				document.getElementById('title-params').innerText = 'Paramètres de la courbe ' + this.currentlySelectedTab
+
+				document.getElementById('is-curve-visible').checked = listOfControlStructures[this.currentlySelectedTab - 1].visible
+			})
+		}
+
+		document.getElementById('is-curve-visible').addEventListener('change', e => {
+			const selectedObject = listOfControlStructures[this.currentlySelectedTab - 1]
+			selectedObject.visible = e.target.checked
+			console.log('update', selectedObject.visible)
+			console.log(selectedObject)
+			console.log(listOfControlStructures)
+		})
 	}
+
+	getCurrentlySelectedCurve(listOfCurves) {
+		const selected = listOfCurves[this.currentlySelectedTab - 1]
+		return selected.data
+
+	}
+}
+
+
+export class CurveData {
+	points = []
 }

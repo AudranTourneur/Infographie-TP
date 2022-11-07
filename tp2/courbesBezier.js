@@ -43,11 +43,34 @@ const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
 const settings = new Settings(canvas, camera)
 
-export let listOfPoints = [
-    { x: 0, y: 0 },
-    { x: 0, y: 20 },
-    { x: 20, y: 20 },
-]
+let c1 = {
+    data: [
+        { x: 0, y: 0 },
+        { x: 0, y: 10 },
+        { x: 10, y: 10 },
+        { x: 10, y: 0 }
+    ], visible: true
+}
+
+let c2 = {
+    data: [
+        { x: 0, y: 0 },
+        { x: 10, y: 0 },
+        { x: 0, y: 10 },
+        { x: 10, y: 10 }
+    ], visible: true
+}
+
+let c3 = {
+    data: [
+        { x: 0, y: 0 },
+        { x: 10, y: 10 },
+        { x: 0, y: 10 },
+        { x: 10, y: 10 }
+    ], visible: true
+}
+
+export let listOfControlStructures = [c1, c2, c3]
 
 const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff })
 
@@ -60,20 +83,14 @@ function bernstein(n, i, t) {
     // i ème polynôme de Bernstein évalué en un t entre 0 et 1
     const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
     if ((polyNomeBernestein.length - 1) != n) {
-        //Si on reecrit une courbe on efface les anciennes pour la memoire
-        if (polyNomeBernestein.curve) {
-            polyNomeBernestein.curve.material.dispose();
-            polyNomeBernestein.curve.geometry.dispose();
-        }
-
+        //TODO if the list if has more points than n delete excess points
+        //if()
         let bernesteinPolyString = choose(n, i) + " * t^" + i + " * (1-t)^" + (n - i);
-
         let bernesteinPolyPoints = [];
         for (let t = 0; t <= 1; t += 0.01) {
             let y = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
             bernesteinPolyPoints.push({ x: t, y: y });
         }
-
         polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
     }
     return bernstein;
@@ -169,48 +186,14 @@ async function animateDeCasteljau(points) {
 
 export let editingPointId = null;
 
-function editPoint(id) {
-    editingPointId = id;
-}
-
-function deletePoint(id) {
-    const res = listOfPoints.find(p => p.id == id)
-    if (!res) return
-    const index = listOfPoints.indexOf(res)
-    if (index != -1)
-        listOfPoints.splice(index, 1)
-    updateList()
-    refreshCanvas()
-}
-
-// add point
-document.getElementById("input-add").addEventListener('click', () => {
-    const x = Number(document.getElementById('input-x').value) || 0
-    const y = Number(document.getElementById('input-y').value) || 0
-
-    listOfPoints.push({ x, y });
-
-    updateList(listOfPoints)
-
-    refreshCanvas()
-})
-
-function addPoint(pos) {
-    listOfPoints.push(pos);
-    updateList(listOfPoints)
-    refreshCanvas()
-}
-
 let deCasteljauAnimationState = 0;
 let deCasteljauAnimationStateOrder = true;
 
 export function refreshCanvas() {
     const s = settings;
-    //if (s.selectedAlgorithm == 'bernstein' && Math.random() > 0.2) return;
 
     for (const child of scene.children) {
         if (child == scene.getObjectByName("Axis")) {
-            //console.log('ici ça skip', child)
             continue
         }
 
@@ -218,29 +201,36 @@ export function refreshCanvas() {
         scene.remove(child);
     }
 
-    const transformedPoints = getTransformedList(listOfPoints)
-    drawControlPoints(transformedPoints);
-    if (s.selectedAlgorithm == 'bernstein') {
-        drawBernstein(transformedPoints);
-
-    }
-    else if (s.selectedAlgorithm == 'decasteljau') {
-        const step = 0.025
-        if (s.animationDecasteljau) {
-            drawDeCasteljau(transformedPoints, deCasteljauAnimationState, step)
-            //console.log(deCasteljauAnimationStateOrder)
-            if (deCasteljauAnimationStateOrder) {
-                deCasteljauAnimationState += step;
-                if (deCasteljauAnimationState > 1)
-                    deCasteljauAnimationStateOrder = false;
-            } else {
-                deCasteljauAnimationState -= step;
-                if (deCasteljauAnimationState < 0)
-                    deCasteljauAnimationStateOrder = true;
-            }
+    for (const curve of listOfControlStructures) {
+        if (!curve.visible) {
+            console.log('continue');
+            continue;
         }
-        else {
-            drawDeCasteljau(transformedPoints, 1, step)
+
+        const transformedPoints = getTransformedList(curve.data)
+        drawControlPoints(transformedPoints);
+        if (s.selectedAlgorithm == 'bernstein') {
+            drawBernstein(transformedPoints);
+
+        }
+        else if (s.selectedAlgorithm == 'decasteljau') {
+            const step = 0.025
+            if (s.animationDecasteljau) {
+                drawDeCasteljau(transformedPoints, deCasteljauAnimationState, step)
+                //console.log(deCasteljauAnimationStateOrder)
+                if (deCasteljauAnimationStateOrder) {
+                    deCasteljauAnimationState += step;
+                    if (deCasteljauAnimationState > 1)
+                        deCasteljauAnimationStateOrder = false;
+                } else {
+                    deCasteljauAnimationState -= step;
+                    if (deCasteljauAnimationState < 0)
+                        deCasteljauAnimationStateOrder = true;
+                }
+            }
+            else {
+                drawDeCasteljau(transformedPoints, 1, step)
+            }
         }
     }
 }
@@ -269,10 +259,11 @@ function getTransformedList(original) {
     })
 }
 
-updateList(listOfPoints)
+console.log('c1,', c1)
+updateList(c1.data)
 
 const axisGroup = drawAxisGraduation();
-axisGroup.name="Axis";
+axisGroup.name = "Axis";
 scene.add(axisGroup);
 // On appel la fonction une première fois pour initialiser
 animate();
