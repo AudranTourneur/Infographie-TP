@@ -2,7 +2,7 @@ import { listOfControlStructures } from "./courbesBezier.js"
 import { handleClick, deleteAllPoints, updateList, addPoint, updateTransformations } from "./gui.js"
 
 /*
-  Ce fichier contient l'ensemble des fonctions relatifs à les récupération des paramètres saisies par l'utilisateur dans l'interface à gauche de l'écran.
+  Ce fichier contient l'ensemble des fonctions relatives à les récupération des paramètres saisies par l'utilisateur dans l'interface à gauche de l'écran.
   Il s'agit essentiellement d'event listeners attachés à des éléments du DOM.
 */
 
@@ -27,7 +27,7 @@ function manageInputGroup(domId, object, prop) {
 	})
 }
 
-// Classe singleton gérant les paramètres de l'utilisateur
+// Classe singleton gérant les paramètres spécifiés par l'utilisateur
 export class Settings {
 	// Translations
 	translationX = 0;
@@ -41,10 +41,13 @@ export class Settings {
 	rotationCenterX = 0;
 	rotationCenterY = 0;
 
+	// Algorithme en cours d'utilisation
 	selectedAlgorithm = 'decasteljau'
 
+	// L'animation de De Casteljau est-elle active ?
 	animationDecasteljau = true
 
+	// Onglet actif
 	currentlySelectedTab = 1;
 
 	// Constructeur de la classe dans lequel est déclaré l'ensemble des event listeners
@@ -66,6 +69,7 @@ export class Settings {
 		manageInputGroup('rotation-center-x', this, 'rotationCenterX')
 		manageInputGroup('rotation-center-y', this, 'rotationCenterY')
 
+		// Bouton "Remettre à zéro" pour les transformations 
 		document.getElementById('reset-transformation').addEventListener('click', () => {
 			this.translationX = 0;
 			this.translationY = 0;
@@ -76,24 +80,29 @@ export class Settings {
 			updateTransformations()
 		})
 
+		// Sélection de l'algorithme de Bernstein
 		document.getElementById('div-bernstein').addEventListener('click', () => {
 			this.selectedAlgorithm = 'bernstein'
 			document.getElementById('radio-bernstein').checked = true
 		})
 
+		// Sélection de l'algorithme de De Casteljau
 		document.getElementById('div-decasteljau').addEventListener('click', () => {
 			this.selectedAlgorithm = 'decasteljau'
 			document.getElementById('radio-decastleljau').checked = true
 		})
 
+		// Animation
 		document.getElementById('animation-decastleljau').addEventListener('click', event => {
 			this.animationDecasteljau = event.target.checked
 		})
 
+		// Ajout ou modification de points par un clic sur le canvas
 		document.getElementById('canvas').addEventListener('click', event => {
 			handleClick(event, canvas, camera)
 		})
 
+		// Bouton "Supprimer tous les points"
 		document.getElementById('reset-points').addEventListener('click', () => {
 			deleteAllPoints()
 		})

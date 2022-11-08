@@ -13,12 +13,12 @@ const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canv
 //Création d'un premier canvas principal 
 const canvas = document.getElementById('canvas')
 
-//Comme on a un une barre de tache de 25 a droite on change la taille de notre renderer 
+//Comme on a un une barre de tâche de 25% à droite, on change la taille de notre renderer 
 const desiredWidth = window.innerWidth * 3 / 4
 const desiredHeight = window.innerHeight
 renderer.setSize(desiredWidth, desiredHeight);
 
-//Creation de la caméra
+//Création de la caméra
 const camera = new THREE.PerspectiveCamera(45, desiredWidth / desiredHeight, 0.5, 1000);
 camera.position.z = 70;
 
@@ -29,7 +29,7 @@ const scene = new THREE.Scene();
 // On met la couleur du background à vert (valeurs RGB normalisées entre 0 et 1, la composante verte est à 1, les autres à 0)
 scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
-
+// Objet qui contient les paramètres spécifiés par l'utilisateur
 const settings = new Settings(canvas, camera);
 
 // Définition des matériaux qui seront utilisés plus tard
@@ -37,7 +37,7 @@ const blueMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
 const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
 
-//Liste des polynomes de bernstein qu'on dessine dans le fichier polynomes
+//Liste des polynômes de Bernstein qu'on dessine dans le fichier polynomes.js
 export const polynomeBernestein = [];
 
 // Utilisée pour ls animations des traits de construction
@@ -45,8 +45,8 @@ let deCasteljauAnimationState = 0;
 let deCasteljauAnimationStateOrder = true;
 
 
-//Données d'initialisation
-// Il s'agit des trois polynomes dans le sujet, c1, c2 et c3
+// Données d'initialisation
+// Il s'agit des trois polynômes dans le sujet : c1, c2 et c3
 const c1X = 10 // Offset en X
 const c1Y = 10 // Offset en Y
 const c1S = 10 // Scaling
@@ -58,7 +58,6 @@ let c1 = {
         { x: c1X + 1 * c1S, y: c1Y + 0 * c1S }
     ], visible: true
 }
-
 
 const c2X = -10
 const c2Y = 10
@@ -85,14 +84,14 @@ let c3 = {
     ], visible: true
 }
 
-// Liste qui contient les structures de contrôle placés par l'utilisateur
+// Liste qui contient les structures de contrôle placées par l'utilisateur
 // Par défaut, elle est construite avec c1, c2 et c3
 export let listOfControlStructures = [c1, c2, c3]
 
 
 // i ème polynôme de Bernstein évalué en un t entre 0 et 1
 function bernstein(n, i, t) {
-    //Calcul du polynome de Bernstein
+    //Calcul du polynôme de Bernstein
     const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
     //On met a jour le polynôme B de Bernestein avec les bonnes valeurs, l'affichage de ce dernier se fait dans polynomes.js
     polynomeBernestein.splice(n);
@@ -109,7 +108,7 @@ function bernstein(n, i, t) {
     return bernstein;
 }
 
-// Dessine la courbe de Bernstein
+// On dessine la courbe de Bernstein
 function drawBernstein(points) {
     const step = 0.01
     const n = points.length - 1;
@@ -126,23 +125,22 @@ function drawBernstein(points) {
             sumY += points[i].y * bernstein(n, i, t)
         }
 
-        // On récolte les points ainsi générés
+        // On récolte les points ainsi générés dans un tableau
         bezierPoints.push({
             x: sumX,
             y: sumY,
         })
     }
 
+    // Objets three.js pour le rendu
     const newPoints = bezierPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
-
     const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
-
     const curve = new THREE.Line(polyGeom, blueMaterial);
 
     scene.add(curve)
 }
 
-//Dessine notre figure de control
+// Dessine notre figure de contrôle
 function drawControlPoints(controlPoints) {
     const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
     const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
@@ -150,19 +148,24 @@ function drawControlPoints(controlPoints) {
     scene.add(controlPolygon)
 }
 
-//Dessine la methode de Casteljau a un t
+//Dessine la methode de Casteljau à un t donné pour un ensemble de points
+// Le trosième argument est un booléan spéciafiant si la fonction doit afficher
+//    les traits de construction ou pas
 function drawDeCasteljauAtT(points, t, drawConstruction) {
 
-    // Calcule le point P, indice J, exposant K de manière récursif
+    // Calcule le point P, indice J, exposant K de manière récursive 
     function pointJK(j, k, t, coords) {
         if (k == 0) return points[j][coords]; // Cas de base
+        // Définition de l'algorithme de De Casteljau, Cours d'Infographie, slide 60
         return (1 - t) * pointJK(j, k - 1, t, coords) + t * pointJK(j + 1, k - 1, t, coords);
     }
 
     const n = points.length - 1
-    const listOfGroups = []     //list de list de point à relier avec un segment
 
-    //Calcul tous les points de construction pour le t donne
+    // Liste de tableaux de points à relier par un segment
+    const listOfGroups = []
+
+    // Calcul tous les points de construction pour le t donné
     for (let k = 1; k <= n; k++) {
         let pointsJ = [];
         for (let j = 0; j <= n - k; j++) {
@@ -173,7 +176,7 @@ function drawDeCasteljauAtT(points, t, drawConstruction) {
         listOfGroups.push(pointsJ)
     }
 
-    //Dessine toutes les lines de construction à partir de list of groups
+    //Dessine tous les traits de construction à partir de "listOfGroups"
     for (const group of listOfGroups) {
         if (drawConstruction) {
             if (group.length > 1) {
@@ -185,15 +188,15 @@ function drawDeCasteljauAtT(points, t, drawConstruction) {
         }
     }
 
-    //Condition pour eviter de casser notre appli en lisant qlq d'indefini si on supprime tous les points
-    if(listOfGroups[listOfGroups.length-1])
-        return listOfGroups[listOfGroups.length-1][0];
+    //Condition de garde pour éviter une erreur à l'éxécution si l'utilisateur spécifie une liste de points vide
+    if (listOfGroups[listOfGroups.length - 1])
+        return listOfGroups[listOfGroups.length - 1][0];
     else return -1;
 }
 
-// Trace l'entiéreté de la courbe de Casteljau
+// Trace l'entiéreté de la courbe de De Casteljau
 function drawDeCasteljauCurve(points, step) {
-    if (points.length < 3) return; // courbe non définie si moins de 3 points
+    if (points.length < 3) return; // Courbe non définie si moins de 3 points
     const finalPoints = []
     let t = 0;
     // Pour plein de valeurs de t allant de 0 à 1 avec un pas de "step"
@@ -211,7 +214,7 @@ function drawDeCasteljauCurve(points, step) {
 
 }
 
-//Applique toutes les transformés en un seul point
+//Applique toutes les transformés, translation, hométhétie et rotation pour un point {x, y} donné 
 export function transformPoint(point) {
     // Paramètres sélectionnés par l'utilisateur
     const s = settings;
@@ -226,7 +229,7 @@ export function transformPoint(point) {
 
     // Translation vers une nouvelle origine si le centre de rotation n'est pas (0, 0)
     const rotationNormalized = { x: scaled.x - s.rotationCenterX, y: scaled.y - s.rotationCenterY }
-    
+
     // Application d'une matrice de rotation
     // https://en.wikipedia.org/wiki/Rotation_matrix
     const rotated = {
@@ -244,7 +247,7 @@ export function transformPoint(point) {
     return rotatedNormal;
 }
 
-//Applique la transforme inverse a un point (on l'utilise pour pouvoir ajouter un point lorsque l'utilisateur clic sur le canvas et qu'une transformée est déjà en cours d'application)
+//Applique la transforme inverse à un point (on l'utilise pour pouvoir ajouter un point lorsque l'utilisateur clique sur le canvas et qu'une transformée est déjà en cours d'application)
 // Il s'agit de l'exact inverse de la fonction transformPoint(point)
 export function inverseTransformPoint(point) {
     const s = settings;
@@ -274,13 +277,13 @@ function getTransformedList(original) {
     })
 }
 
-//Met à jour notre canvas
+// Mise à jour notre canvas
 export function refreshCanvas() {
     const s = settings;
 
-    // Supprime tous les elements de la scene et supprime de la mémoire les éléments
+    // Supprime tous les elements de la scène et supprime de la mémoire les éléments
     for (const child of scene.children) {
-        //Si c'est nos axes, on ne les suprime pas 
+        // Si c'est nos axes, on ne les suprime pas 
         if (child == scene.getObjectByName("Axis")) {
             continue
         }
@@ -315,7 +318,7 @@ export function refreshCanvas() {
                     deCasteljauAnimationState += step;
                     if (deCasteljauAnimationState > 1)
                         deCasteljauAnimationStateOrder = false;
-                } 
+                }
                 //Puis dans le sens décroissant
                 else {
                     deCasteljauAnimationState -= step;
@@ -337,17 +340,17 @@ function animate() {
     requestAnimationFrame(animate);
     refreshCanvas();
 
-    // On fait le rendu graphique à chaque frame puisque l'état du monde a été modifié
+    // On fait le rendu graphique à chaque frame puisque l'état du monde a peut-être été modifié
     renderer.render(scene, camera);
 }
 
-//Première initialisation de notre liste de point à afficher
+// Première initialisation de notre liste de points à afficher
 updateList(c1)
 
-//On dessine et on creer nos axes
+// On dessine et on créer nos axes
 const axisGroup = drawAxisGraduation();
 axisGroup.name = "Axis";
 scene.add(axisGroup);
 
-// On appel la fonction une première fois pour initialiser
+// On appelle la fonction une première fois pour initialiser
 animate();

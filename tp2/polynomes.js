@@ -1,22 +1,22 @@
 import { polynomeBernestein } from "./courbesBezier.js";
-import {disposeNode} from "./utils.js";
+import { disposeNode } from "./utils.js";
 
 /*
   Ce fichier contient la logique pour l'affichage des polynômes de Bernstein en bas à gauche de l'écran
 */
 
-//On recupère les données pour initialiser un deuxieme canvas pour afficher les polynomes de Bernstein
+//On recupère les données pour initialiser un deuxieme canvas pour afficher les polynômes de Bernstein
 const canvas = document.getElementById('canvas-polynomes')
 const renderer = new THREE.WebGLRenderer({ canvas });
 const w = 200
 const h = 200
 renderer.setSize(w, h);
 
-//Comme on travail entre 0 et 1 on met la caméra dans un bonne position pour faciliter la lecture
+// Comme on travail entre 0 et 1, on met la caméra dans un bonne position pour faciliter la lecture
 const camera = new THREE.PerspectiveCamera(45, w / h, 0.5, 1000);
 camera.position.z = 1.5;
 camera.position.x = 0.5;
-camera.position.y= 0.5;
+camera.position.y = 0.5;
 camera.lookAt(0.5, 0.5, 0);
 
 // Instanciation de la scène
@@ -41,15 +41,15 @@ function drawbernsteinPoly() {
 }
 
 // Mise à jour du canvas
-function refreshCanvas(){
-	for(const child of scene.children){
+function refreshCanvas() {
+	for (const child of scene.children) {
 		disposeNode(child);
 		scene.remove(child);
 	}
 	drawbernsteinPoly();
 }
 
-//Met a jour notre canvas toutes les secondes
+// On met à jour notre canvas toutes les secondes
 setInterval(() => {
 	refreshCanvas();
 	renderer.render(scene, camera);

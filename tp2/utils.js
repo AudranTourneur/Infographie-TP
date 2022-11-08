@@ -21,7 +21,7 @@ export function clickEventToWorldCoords(e, canvas, camera) {
         y = e.clientY - rect.top;
 
     // Conversion des coordonnées du canvas vers l'espace three.js
-    // Normalisation des coordonnées sur l'intervale [-1; 1]
+    // Normalisation des coordonnées sur l'intervalle [-1; 1]
     const mouse = new THREE.Vector3();
     mouse.x = ((x / canvas.clientWidth) * 2) - 1;
     mouse.y = (-(y / canvas.clientHeight) * 2) + 1;

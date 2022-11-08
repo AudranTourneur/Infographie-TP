@@ -4,8 +4,8 @@ import { uuid, round2 } from './utils.js'
 import { clickEventToWorldCoords } from "./utils.js"
 
 /*
-  Ce fichier contient l'ensemble des fonctions relatifs à la mise à jour de l'interface des paramètres à gauche de l'écran.
-  Il s'agit essentiellement de manipulation du DOM.
+  Ce fichier contient l'ensemble des fonctions relatives à la mise à jour de l'interface des paramètres à gauche de l'écran.
+  Il s'agit essentiellement de manipulation du DOM (Document Object Model).
 */
 
 
@@ -17,7 +17,7 @@ export function updateList(list) {
   for (const p of list.data) {
     if (!p.id) {
       // Chaque bouton doit avoir un identifiant pour pouvoir attacher un event listener
-      // On le crée si c'est la première fois que cette fonction est appelé pour un point donné
+      // On le crée si c'est la première fois que cette fonction est appelée pour un point donné
       p.id = uuid()
     }
     const transformedPount = transformPoint(p)
@@ -52,7 +52,7 @@ export function handleClick(e, canvas, camera) {
   const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
   const coords = clickEventToWorldCoords(e, canvas, camera)
   if (!editingPointId) {
-    // Si pas de point en cours d'édition, on en ajoute un
+    // Si il n'y a pas de point en cours d'édition, on en ajoute un nouveau là où l'utilisateur a cliqué
     addPoint(coords)
   }
   else {

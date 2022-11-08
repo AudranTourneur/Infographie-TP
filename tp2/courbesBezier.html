@@ -9,11 +9,11 @@
   </head>
 
   <body>
-    <!--Premier container qui contient toute notre interface pour modifier,ajouter suprrimer nos points et choisir une courbe-->
+    <!--Premier container qui contient toute notre interface pour modifier, ajouter supprimer nos points et choisir une courbe-->
     <div id="container">
       <h1 class="text-2xl mb-4">Paramètres généraux</h1>
 
-      <!--Sélection de lalgorithme à utiliser pour l'affichage-->
+      <!--Sélection de l'algorithme à utiliser pour l'affichage-->
       <fieldset class="py-4">
         <legend>Choisir l'algorithme à utiliser:</legend>
 
@@ -50,7 +50,7 @@
 
       <div class="divider"></div>
 
-      <!--Les différents onglets pour afficher les courbes différentes-->
+      <!--Les différents onglets pour afficher les différentes courbes-->
       <div class="tabs">
         <a id="tab-1" class="tab tab-bordered tab-active">Courbe 1</a>
         <a id="tab-2" class="tab tab-bordered">Courbe 2</a>
@@ -72,7 +72,7 @@
         </h1>
         <div class="flex w-full"></div>
 
-        <!--Interface pour ajouter un point a notre structure de controle-->
+        <!--Interface pour ajouter un point à notre structure de contrôle-->
         <div class="flex flex-col w-full border-opacity-50 mt-4">
           <div
             class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center h-32"
@@ -117,7 +117,7 @@
         </div>
 
         <br />
-        <!--La liste des points du polygone de controle-->
+        <!--La liste des points du polygône de contrôle-->
         <div>
           <h2 class="text-lg text-center">Liste des points</h2>
           <div class="flex justify-around">
@@ -299,7 +299,7 @@
       </div>
 
       <div class="divider"></div>
-      <!--La partie d'affichage des polynomes de bernstein-->
+      <!--La partie d'affichage des polynômes de Bernstein-->
       <div>
         <div class="flex justify-center items-center">
           <div class="text-center">
@@ -316,7 +316,7 @@
 
     <canvas id="canvas"></canvas>
 
-    <!--Appel de tous nos fichiers js-->
+    <!--Appel de tous nos fichiers JavaScript-->
     <script type="module" src="deps/three.js"></script>
     <script type="module" src="utils.js"></script>
     <script type="module" src="courbesBezier.js"></script>
