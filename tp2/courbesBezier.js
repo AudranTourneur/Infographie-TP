@@ -43,6 +43,9 @@ const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
 const settings = new Settings(canvas, camera)
 
+
+// Données d'initialisartions
+
 const c1X = 10
 const c1Y = 10
 const c1S = 10
@@ -105,7 +108,6 @@ function bernstein(n, i, t) {
         bernesteinPolyPoints.push({ x: t, y: y });
     }
     polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
-    //}
     return bernstein;
 }
 
@@ -158,10 +160,12 @@ function animate() {
 }
 
 
+// Trace la courbe de Casteljau à un instant T
 function drawDeCasteljauAtT(points, t, drawConstruction) {
 
+    // Calcule le point P, indice J, exposant K de manière récursif
     function pointJK(j, k, t, coords) {
-        if (k == 0) return points[j][coords];
+        if (k == 0) return points[j][coords]; // Cas de base
         return (1 - t) * pointJK(j, k - 1, t, coords) + t * pointJK(j + 1, k - 1, t, coords);
     }
 
@@ -194,23 +198,14 @@ function drawDeCasteljauAtT(points, t, drawConstruction) {
                 scene.add(curve)
             }
         }
-
-        /*
-        if (group.length == 1) {
-            const geometry = new THREE.SphereGeometry(0.1, 32, 16);
-            const sphere = new THREE.Mesh(geometry, blueMaterial)
-            sphere.position.x = group[0].x
-            sphere.position.y = group[0].y
-
-            scene.add(sphere)
-        }
-        */
     }
 
     return dcPoints[dcPoints.length - 1]
 }
 
+// Trace l'entiéreté de la courbe de Casteljau
 function drawDeCasteljauCurve(points, step) {
+    if (points.length < 3) return;
     const finalPoints = []
     let t = 0;
     while (t < 1) {
@@ -233,6 +228,7 @@ export let editingPointId = null;
 let deCasteljauAnimationState = 0;
 let deCasteljauAnimationStateOrder = true;
 
+// Mise à jour du canvas
 export function refreshCanvas() {
     const s = settings;
 

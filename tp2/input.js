@@ -1,33 +1,40 @@
 import { listOfControlStructures } from "./courbesBezier.js"
-import { handleClick, deleteAllPoints, updateList } from "./gui.js"
+import { handleClick, deleteAllPoints, updateList, addPoint, updateTransformations } from "./gui.js"
 
-//TODO faut checker les inputs pour etre sure que c des nombres
+// Gére les sliders à gauche de l'interface pour les transformations
 function manageInputGroup(domId, object, prop) {
 	const inputBox = document.getElementById(domId)
 	const inputSlider = document.getElementById('slider-' + domId)
 
+	// Event listener pour une input box
 	inputBox.addEventListener('input', event => {
 		object[prop] = Number(event.target.value)
 		inputSlider.value = object[prop]
+		updateList(new Settings().getCurrentlySelectedCurve(listOfControlStructures))
 	})
 
+	// Event listener pour un slider
 	inputSlider.addEventListener('input', event => {
 		object[prop] = Number(event.target.value)
 		inputBox.value = object[prop]
+		updateList(new Settings().getCurrentlySelectedCurve(listOfControlStructures))
 	})
 }
 
+// Classe singleton gérant les paramètres de l'utilisateur
 export class Settings {
+	// Translations
 	translationX = 0;
 	translationY = 0;
 
+	// Hométhétie
 	scaleFactor = 1;
 
+	// Rotations
 	rotationFactorDeg = 0;
 	rotationCenterX = 0;
 	rotationCenterY = 0;
 
-	//selectedAlgorithm = 'bernstein'
 	selectedAlgorithm = 'decasteljau'
 
 	animationDecasteljau = true
@@ -41,6 +48,7 @@ export class Settings {
 
 		Settings._instance = this;
 
+		// Initialisation des sliders et des inputs
 		manageInputGroup('translation-x', this, 'translationX')
 		manageInputGroup('translation-y', this, 'translationY')
 
@@ -57,6 +65,7 @@ export class Settings {
 			this.rotationFactorDeg = 0;
 			this.rotationCenterX = 0;
 			this.rotationCenterY = 0;
+			updateTransformations()
 		})
 
 		document.getElementById('div-bernstein').addEventListener('click', () => {
@@ -107,6 +116,13 @@ export class Settings {
 			console.log(selectedObject)
 			console.log(listOfControlStructures)
 		})
+
+		document.getElementById('input-add').addEventListener('click', event => {
+			const x = Number(document.getElementById('input-x').value) || 0
+			const y = Number(document.getElementById('input-y').value) || 0
+			addPoint({ x, y })
+			updateList(this.getCurrentlySelectedCurve())
+		})
 	}
 
 	getCurrentlySelectedCurveData(listOfCurves) {
@@ -118,11 +134,4 @@ export class Settings {
 		const selected = listOfCurves[this.currentlySelectedTab - 1]
 		return selected
 	}
-
-
-}
-
-
-export class CurveData {
-	points = []
 }

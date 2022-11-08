@@ -13,16 +13,11 @@
 <body>
   <div id="container">
 
-    Paramètres généraux
+    <h1 class="text-2xl mb-4">
+      Paramètres généraux
+    </h1>
 
-
-    Affichage des courbes :
-    <div class="btn-group">
-      <button class="btn btn-active">Courante uniquement</button>
-      <button class="btn">Toutes</button>
-    </div>
-
-    <fieldset>
+    <fieldset class="py-4">
       <legend>Choisir l'algorithme à utiliser:</legend>
 
       <div id="div-bernstein">
@@ -33,7 +28,7 @@
       <div id="div-decasteljau">
         <input class="radio radio-success" type="radio" id="radio-decastleljau" name="algo" checked />
         <label>De Casteljau</label>
-        <div>
+        <div class="ml-8 my-2">
           <input class="checkbox checkbox-success" type="checkbox" id="animation-decastleljau" checked />
           Animation De Casteljau
         </div>
@@ -57,25 +52,50 @@
 
       <h1 class="text-xl" id="title-params">Paramètres de la courbe 1</h1>
       <div class="flex w-full">
-        <div class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
-          Ajouter un point
-          <br>
-          X
-          <input class="input input-bordered input-sm input-info w-full" id="input-x" type="text" />
-          Y
-          <input class="input input-bordered input-sm input-info w-full" id="input-y" type="text" />
+
+      </div>
+
+      <div class="flex flex-col w-full border-opacity-50 mt-4">
+        <div class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center h-32">
+          <div class="flex flex-col h-full justify-center">
+            <div class="text-lg">
+              Ajouter un point
+            </div>
+            <div class="flex flex-row">
+
+              <div class="w-20">
+                X
+                <input class="input input-bordered input-sm input-info w-full" id="input-x" type="text" value="0" />
+              </div>
+
+              <div class="w-20">
+                Y
+                <input class="input input-bordered input-sm input-info w-full" id="input-y" type="text" value="0" />
+              </div>
+
+              <div class="flex flex-col justify-end">
+                <button class="btn btn-primary btn-sm" id="input-add">Ajouter</button>
+              </div>
+            </div>
+          </div>
 
 
         </div>
-        <div class="divider divider-horizontal">OU</div>
+        <div class="divider">OU</div>
         <div class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">Cliquez sur le plan</div>
       </div>
 
-      <button class="btn btn-primary" id="input-add">Ajouter</button>
 
       <br />
       <div>
-        Liste des points :
+        <h2 class="text-lg">
+          Liste des points :
+        </h2>
+        <div class="flex justify-around">
+          <span>Coords.</span>
+          <span>Transformé</span>
+          <span>Actions</span>
+        </div>
         <div id="edit-waiting" class="alert alert-info shadow-lg hidden">
           <div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -130,7 +150,8 @@
             <input class="input input-bordered input-sm input-info w-full" type="text" id="scale-factor" value="1" />
           </div>
           <div>
-            <input class="range range-info" type="range" id="slider-scale-factor" min="-5" max="5" step="0.1" />
+            <input class="range range-info" type="range" id="slider-scale-factor" min="-5" max="5" step="0.1"
+              value="1" />
           </div>
         </div>
 
