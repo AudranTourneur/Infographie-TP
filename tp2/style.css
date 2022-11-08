@@ -66,4 +66,5 @@ body {
 
 .input-group {
   display: flex;
+  margin-bottom: 12px;
 }

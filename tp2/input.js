@@ -1,6 +1,12 @@
 import { listOfControlStructures } from "./courbesBezier.js"
 import { handleClick, deleteAllPoints, updateList, addPoint, updateTransformations } from "./gui.js"
 
+/*
+  Ce fichier contient l'ensemble des fonctions relatifs à les récupération des paramètres saisies par l'utilisateur dans l'interface à gauche de l'écran.
+  Il s'agit essentiellement d'event listeners attachés à des éléments du DOM.
+*/
+
+
 // Gére les sliders à gauche de l'interface pour les transformations
 function manageInputGroup(domId, object, prop) {
 	const inputBox = document.getElementById(domId)
@@ -41,7 +47,9 @@ export class Settings {
 
 	currentlySelectedTab = 1;
 
+	// Constructeur de la classe dans lequel est déclaré l'ensemble des event listeners
 	constructor(canvas, camera) {
+		// Singleton pattern
 		if (Settings._instance) {
 			return Settings._instance
 		}
@@ -91,6 +99,7 @@ export class Settings {
 		})
 
 
+		// Gestion des onglets
 		const tabs = [1, 2, 3]
 		for (const tabId of tabs) {
 			document.getElementById(`tab-${tabId}`).addEventListener('click', () => {
@@ -107,11 +116,13 @@ export class Settings {
 			})
 		}
 
+		// Toggle pour afficher ou cacher une courbe
 		document.getElementById('is-curve-visible').addEventListener('change', e => {
 			const selectedObject = listOfControlStructures[this.currentlySelectedTab - 1]
 			selectedObject.visible = e.target.checked
 		})
 
+		// Ajout d'un point
 		document.getElementById('input-add').addEventListener('click', event => {
 			const x = Number(document.getElementById('input-x').value) || 0
 			const y = Number(document.getElementById('input-y').value) || 0
@@ -120,11 +131,13 @@ export class Settings {
 		})
 	}
 
+	// Renvoie les données de la courbe sélectionnée
 	getCurrentlySelectedCurveData(listOfCurves) {
 		const selected = listOfCurves[this.currentlySelectedTab - 1]
 		return selected.data
 	}
 
+	// Renvoie la courbe sélectionnée
 	getCurrentlySelectedCurve(listOfCurves) {
 		const selected = listOfCurves[this.currentlySelectedTab - 1]
 		return selected

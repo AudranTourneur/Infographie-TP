@@ -9,20 +9,24 @@ import { clickEventToWorldCoords } from "./utils.js"
 */
 
 
-// Mise à jour de la liste 
+// Mise à jour de la liste des points
 export function updateList(list) {
   let curve = list.data;
 
   document.getElementById("list-points").innerHTML = ""
   for (const p of list.data) {
     if (!p.id) {
+      // Chaque bouton doit avoir un identifiant pour pouvoir attacher un event listener
+      // On le crée si c'est la première fois que cette fonction est appelé pour un point donné
       p.id = uuid()
     }
-    const transformedP = transformPoint(p)
-    document.getElementById("list-points").innerHTML += `<div class="badge badge-lg">(X=${round2(p.x)} ; Y=${round2(p.y)})</div> <div class="badge badge-lg">(X=${round2(transformedP.x)} ; Y=${round2(transformedP.y)})</div>  <button class="text text-info" id="edit-${p.id}">Modifier</button> <button class="text text-error" id="delete-${p.id}">Supprimer</button> <br/>`
+    const transformedPount = transformPoint(p)
+    // Mise à jour du HTML
+    document.getElementById("list-points").innerHTML += `<div class="badge badge-lg">(X=${round2(p.x)} ; Y=${round2(p.y)})</div> <div class="badge badge-lg">(X=${round2(transformedPount.x)} ; Y=${round2(transformedPount.y)})</div>  <button class="text text-info" id="edit-${p.id}">Modifier</button> <button class="text text-error" id="delete-${p.id}">Supprimer</button><br/><br/>`
   }
 
   for (const p of curve) {
+    // Attachement des event listeners sur les boutons de suppression et de mofification
     document.getElementById(`delete-${p.id}`).addEventListener('click', () => {
       deletePoint(p.id)
     })
@@ -47,11 +51,14 @@ export let editingPointId = null;
 export function handleClick(e, canvas, camera) {
   const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
   const coords = clickEventToWorldCoords(e, canvas, camera)
-  if (!editingPointId)
+  if (!editingPointId) {
+    // Si pas de point en cours d'édition, on en ajoute un
     addPoint(coords)
+  }
   else {
     const point = curve.data.find(e => e.id == editingPointId)
     if (point) {
+      // Un point est en modification, le prochain clic mettra à jour ce point
       point.x = coords.x
       point.y = coords.y
       updateList(curve)
@@ -59,6 +66,7 @@ export function handleClick(e, canvas, camera) {
       document.getElementById('edit-waiting').classList.add('hidden')
     }
     else {
+      // Ce cas ne devrait pas arriver
       addPoint(coords)
     }
   }
@@ -101,6 +109,4 @@ export function updateTransformations() {
     document.getElementById(prefix + 'rotation-center-x').value = s.rotationCenterX
     document.getElementById(prefix + 'rotation-center-y').value = s.rotationCenterY
   }
-
-
 }

@@ -1,7 +1,11 @@
-import { polyNomeBernestein } from "./courbesBezier.js";
+import { polynomeBernestein } from "./courbesBezier.js";
 import {disposeNode} from "./utils.js";
 
-//On recupère les données pour initialiser un deuxieme canvas pour afficher les polynomes de bernstein
+/*
+  Ce fichier contient la logique pour l'affichage des polynômes de Bernstein en bas à gauche de l'écran
+*/
+
+//On recupère les données pour initialiser un deuxieme canvas pour afficher les polynomes de Bernstein
 const canvas = document.getElementById('canvas-polynomes')
 const renderer = new THREE.WebGLRenderer({ canvas });
 const w = 200
@@ -22,11 +26,12 @@ scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
-//Dessine les poly de bernstein
+//Dessine les polynômes de Bernstein
 function drawbernsteinPoly() {
-	polyNomeBernestein.forEach(elt => {
+	polynomeBernestein.forEach(elt => {
 		let bernsteinPolyPoints = []
 		elt.points.forEach(e => {
+			// On transforme notre tableau d'objets JS {x, y} en objets three.js
 			bernsteinPolyPoints.push(new THREE.Vector3(e.x, e.y, 0))
 		})
 		const bernsteinGeometry = new THREE.BufferGeometry().setFromPoints(bernsteinPolyPoints);
@@ -35,6 +40,7 @@ function drawbernsteinPoly() {
 	})
 }
 
+// Mise à jour du canvas
 function refreshCanvas(){
 	for(const child of scene.children){
 		disposeNode(child);
