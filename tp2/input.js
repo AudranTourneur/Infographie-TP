@@ -108,11 +108,17 @@ export class Settings {
 		})
 	}
 
-	getCurrentlySelectedCurve(listOfCurves) {
+	getCurrentlySelectedCurveData(listOfCurves) {
 		const selected = listOfCurves[this.currentlySelectedTab - 1]
 		return selected.data
-
 	}
+
+	getCurrentlySelectedCurve(listOfCurves) {
+		const selected = listOfCurves[this.currentlySelectedTab - 1]
+		return selected
+	}
+
+
 }
 
 

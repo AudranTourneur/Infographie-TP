@@ -1,4 +1,4 @@
-import { listOfControlStructures, transformPoint, refreshCanvas } from "./courbesBezier.js"
+import { listOfControlStructures, transformPoint, refreshCanvas, inverseTransformPoint } from "./courbesBezier.js"
 import { Settings } from "./input.js"
 import { uuid, round2 } from './utils.js'
 import { clickEventToWorldCoords } from "./utils.js"
@@ -26,11 +26,13 @@ window.onclick = function(event) {
 }*/
 
 export function updateList(list) {
-  const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
-  console.log('curve is ', curve)
+  let curve = list.data;
+  console.log('yo', list, curve)
+  //const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
+  //console.log('curve is ', curve)
 
   document.getElementById("list-points").innerHTML = ""
-  for (const p of list) {
+  for (const p of list.data) {
     let firstTime = false
     if (!p.id) {
       firstTime = true
@@ -68,11 +70,11 @@ export function handleClick(e, canvas, camera) {
   if (!editingPointId)
     addPoint(coords)
   else {
-    const point = curve.find(e => e.id == editingPointId)
+    const point = curve.data.find(e => e.id == editingPointId)
     if (point) {
       point.x = coords.x
       point.y = coords.y
-      updateList()
+      updateList(curve)
       editingPointId = null
     }
     else {
@@ -83,7 +85,7 @@ export function handleClick(e, canvas, camera) {
 
 function addPoint(pos) {
   const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
-  curve.push(pos);
+  curve.data.push(inverseTransformPoint(pos));
   updateList(curve)
   refreshCanvas()
 }
@@ -94,11 +96,11 @@ function editPoint(id) {
 
 function deletePoint(id) {
   const curve = new Settings().getCurrentlySelectedCurve(listOfControlStructures)
-  const res = curve.find(p => p.id == id)
+  const res = curve.data.find(p => p.id == id)
   if (!res) return
-  const index = curve.indexOf(res)
+  const index = curve.data.indexOf(res)
   if (index != -1)
-    curve.splice(index, 1)
-  updateList()
+    curve.data.splice(index, 1)
+  updateList(curve)
   refreshCanvas()
 }

@@ -43,12 +43,15 @@ const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
 const settings = new Settings(canvas, camera)
 
+const c1OffsetX = 10
+const c1OffsetY = 10
+const c1Scale = 10
 let c1 = {
     data: [
-        { x: 0, y: 0 },
-        { x: 0, y: 10 },
-        { x: 10, y: 10 },
-        { x: 10, y: 0 }
+        { x: c1OffsetX + 0 * c1Scale, y: c1OffsetY + 0 * c1Scale },
+        { x: c1OffsetX + 0 * c1Scale, y: c1OffsetY + 1 * c1Scale },
+        { x: c1OffsetX + 1 * c1Scale, y: c1OffsetY + 1 * c1Scale },
+        { x: c1OffsetX + 1 * c1Scale, y: c1OffsetY + 0 * c1Scale }
     ], visible: true
 }
 
@@ -156,9 +159,10 @@ function drawDeCasteljau(points, max, step) {
 
     const n = points.length - 1
 
-    const dcPoints = []
+    let dcPoints = []
 
     for (let t = 0; t < max; t += step) {
+        //const t = max * step;
         for (let k = 1; k <= n; k++) {
             for (let j = 0; j <= n - k; j++) {
                 const x = pointJK(j, k, t, 'x');
@@ -254,6 +258,26 @@ export function transformPoint(point) {
     return rotatedNormal;
 }
 
+export function inverseTransformPoint(point) {
+    const s = settings;
+    const theta = s.rotationFactorDeg * Math.PI / 180;
+    const rotatedNormal = {
+        x: point.x - s.rotationCenterX,
+        y: point.y - s.rotationCenterY,
+    }
+    const rotated = {
+        x: (rotatedNormal.x * Math.cos(theta) + rotatedNormal.y * Math.sin(theta)),
+        y: (rotatedNormal.x * -Math.sin(theta) + rotatedNormal.y * Math.cos(theta)),
+    }
+    const rotationNormalized = { x: rotated.x + s.rotationCenterX, y: rotated.y + s.rotationCenterY }
+
+    const scaled = { x: rotationNormalized.x / s.scaleFactor, y: rotationNormalized.y / s.scaleFactor }
+
+    const translated = { x: scaled.x - s.translationX, y: scaled.y - s.translationY }
+
+    return translated;
+}
+
 function getTransformedList(original) {
     return original.map(e => {
         return transformPoint(e)
@@ -261,7 +285,7 @@ function getTransformedList(original) {
 }
 
 console.log('c1,', c1)
-updateList(c1.data)
+updateList(c1)
 
 const axisGroup = drawAxisGraduation();
 axisGroup.name = "Axis";

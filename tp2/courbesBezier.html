@@ -13,6 +13,32 @@
 <body>
   <div id="container">
 
+    Paramètres généraux
+
+
+    Affichage des courbes :
+    <div class="btn-group">
+      <button class="btn btn-active">Courante uniquement</button>
+      <button class="btn">Toutes</button>
+    </div>
+
+    <fieldset>
+      <legend>Choisir l'algorithme à utiliser:</legend>
+
+      <div id="div-bernstein">
+        <input class="radio radio-success" type="radio" id="radio-bernstein" name="algo" checked />
+        <label>Bernstein</label>
+      </div>
+
+      <div id="div-decasteljau">
+        <input class="radio radio-success" type="radio" id="radio-decastleljau" name="algo" />
+        <label>De Casteljau</label>
+        <div>
+          <input class="checkbox checkbox-success" type="checkbox" id="animation-decastleljau" checked />
+          Animation De Casteljau
+        </div>
+      </div>
+    </fieldset>
 
 
 
@@ -41,28 +67,20 @@
       <br />
       <div>
         Liste des points :
+        <div id="edit-waiting" class="alert alert-info shadow-lg hidden">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              class="stroke-current flex-shrink-0 w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>En attente... <br>Cliquez sur le plan pour bouger le point</span>
+          </div>
+        </div>
         <div id="list-points"></div>
       </div>
       <button class="btn btn-error" id="reset-points">Supprimer tous les points</button>
       <br />
-
-      <fieldset>
-        <legend>Choisir l'algorithme à utiliser:</legend>
-
-        <div id="div-bernstein">
-          <input class="radio radio-success" type="radio" id="radio-bernstein" name="algo" checked />
-          <label>Bernstein</label>
-        </div>
-
-        <div id="div-decasteljau">
-          <input class="radio radio-success" type="radio" id="radio-decastleljau" name="algo" />
-          <label>De Casteljau</label>
-          <div>
-            <input class="checkbox checkbox-success" type="checkbox" id="animation-decastleljau" checked />
-            Animation De Casteljau
-          </div>
-        </div>
-      </fieldset>
 
     </div>
 
