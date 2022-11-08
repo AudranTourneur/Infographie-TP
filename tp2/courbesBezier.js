@@ -43,39 +43,47 @@ const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
 const settings = new Settings(canvas, camera)
 
-const c1OffsetX = 10
-const c1OffsetY = 10
-const c1Scale = 10
+const c1X = 10
+const c1Y = 10
+const c1S = 10
 let c1 = {
     data: [
-        { x: c1OffsetX + 0 * c1Scale, y: c1OffsetY + 0 * c1Scale },
-        { x: c1OffsetX + 0 * c1Scale, y: c1OffsetY + 1 * c1Scale },
-        { x: c1OffsetX + 1 * c1Scale, y: c1OffsetY + 1 * c1Scale },
-        { x: c1OffsetX + 1 * c1Scale, y: c1OffsetY + 0 * c1Scale }
+        { x: c1X + 0 * c1S, y: c1Y + 0 * c1S },
+        { x: c1X + 0 * c1S, y: c1Y + 1 * c1S },
+        { x: c1X + 1 * c1S, y: c1Y + 1 * c1S },
+        { x: c1X + 1 * c1S, y: c1Y + 0 * c1S }
     ], visible: true
 }
 
+
+const c2X = -10
+const c2Y = 10
+const c2S = 10
 let c2 = {
     data: [
-        { x: 0, y: 0 },
-        { x: 10, y: 0 },
-        { x: 0, y: 10 },
-        { x: 10, y: 10 }
-    ], visible: false
+        { x: c2X + 0 * c2S, y: c2Y + 0 * c2S },
+        { x: c2X + 1 * c2S, y: c2Y + 0 * c2S },
+        { x: c2X + 0 * c2S, y: c2Y + 1 * c2S },
+        { x: c2X + 1 * c2S, y: c2Y + 1 * c2S }
+    ], visible: true
 }
 
+
+const c3X = 10
+const c3Y = -10
+const c3S = 10
 let c3 = {
     data: [
-        { x: 0, y: 0 },
-        { x: 10, y: 10 },
-        { x: 0, y: 10 },
-        { x: 10, y: 0 }
-    ], visible: false
+        { x: c3X + 0 * c3S, y: c3Y + 0 * c3S },
+        { x: c3X + 1 * c3S, y: c3Y + 1 * c3S },
+        { x: c3X + 0 * c3S, y: c3Y + 1 * c3S },
+        { x: c3X + 1 * c3S, y: c3Y + 0 * c3S }
+    ], visible: true
 }
 
 export let listOfControlStructures = [c1, c2, c3]
 
-const curveMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff })
+const blueMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3 })
 
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
@@ -88,15 +96,15 @@ function bernstein(n, i, t) {
     // i ème polynôme de Bernstein évalué en un t entre 0 et 1
     const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
     //if ((polyNomeBernestein.length - 1) != n) {
-        polyNomeBernestein.splice(n);
-        
-        let bernesteinPolyString = choose(n, i) + " * t^" + i + " * (1-t)^" + (n - i);
-        let bernesteinPolyPoints = [];
-        for (let t = 0; t <= 1; t += 0.01) {
-            let y = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
-            bernesteinPolyPoints.push({ x: t, y: y });
-        }
-        polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
+    polyNomeBernestein.splice(n);
+
+    let bernesteinPolyString = choose(n, i) + " * t^" + i + " * (1-t)^" + (n - i);
+    let bernesteinPolyPoints = [];
+    for (let t = 0; t <= 1; t += 0.01) {
+        let y = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
+        bernesteinPolyPoints.push({ x: t, y: y });
+    }
+    polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
     //}
     return bernstein;
 }
@@ -125,16 +133,16 @@ function drawBernstein(points) {
 
     const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
 
-    const curve = new THREE.Line(polyGeom, curveMaterial);
+    const curve = new THREE.Line(polyGeom, blueMaterial);
 
     scene.add(curve)
 }
 
 // Création d'un matériau de couleur vert
-const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 3 })
+const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
 
 function drawControlPoints(controlPoints) {
-    const threePoints = controlPoints.map(e =>new THREE.Vector3(e.x, e.y, 0));
+    const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
     const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
     const controlPolygon = new THREE.Line(polyGeom, controlMaterial);
     scene.add(controlPolygon)
@@ -150,7 +158,7 @@ function animate() {
 }
 
 
-function drawDeCasteljau(points, max, step) {
+function drawDeCasteljauAtT(points, t, drawConstruction) {
 
     function pointJK(j, k, t, coords) {
         if (k == 0) return points[j][coords];
@@ -161,33 +169,63 @@ function drawDeCasteljau(points, max, step) {
 
     let dcPoints = []
 
-    for (let t = 0; t < max; t += step) {
-        //const t = max * step;
-        for (let k = 1; k <= n; k++) {
-            for (let j = 0; j <= n - k; j++) {
-                const x = pointJK(j, k, t, 'x');
-                const y = pointJK(j, k, t, 'y');
+    const listOfGroups = []
 
-                dcPoints.push({ x, y })
+    for (let k = 1; k <= n; k++) {
+        let pointsJ = [];
+        for (let j = 0; j <= n - k; j++) {
+            const x = pointJK(j, k, t, 'x');
+            const y = pointJK(j, k, t, 'y');
+            pointsJ.push({ x, y })
+            dcPoints.push({ x, y })
+        }
+        listOfGroups.push(pointsJ)
+    }
+
+    for (const group of listOfGroups) {
+        if (drawConstruction) {
+            if (group.length > 1) {
+                const newPoints = group.map(e => new THREE.Vector3(e.x, e.y, 0));
+
+                const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
+
+                const curve = new THREE.Line(polyGeom, redMaterial);
+
+                scene.add(curve)
             }
         }
+
+        /*
+        if (group.length == 1) {
+            const geometry = new THREE.SphereGeometry(0.1, 32, 16);
+            const sphere = new THREE.Mesh(geometry, blueMaterial)
+            sphere.position.x = group[0].x
+            sphere.position.y = group[0].y
+
+            scene.add(sphere)
+        }
+        */
     }
-    const newPoints = dcPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+
+    return dcPoints[dcPoints.length - 1]
+}
+
+function drawDeCasteljauCurve(points, step) {
+    const finalPoints = []
+    let t = 0;
+    while (t < 1) {
+        t += step
+        finalPoints.push(drawDeCasteljauAtT(points, t, false))
+    }
+
+    const newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
 
     const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
 
-    const curve = new THREE.Line(polyGeom, redMaterial);
+    const curve = new THREE.Line(polyGeom, blueMaterial);
 
     scene.add(curve)
-}
 
-
-async function animateDeCasteljau(points) {
-
-    for (let i = 0; i < 100; i++) {
-        drawDeCasteljau(points, i / 100, 0.1)
-        sleep(50)
-    }
 }
 
 export let editingPointId = null;
@@ -219,9 +257,11 @@ export function refreshCanvas() {
 
         }
         else if (s.selectedAlgorithm == 'decasteljau') {
-            const step = 0.025
+            const step = 0.01
             if (s.animationDecasteljau) {
-                drawDeCasteljau(transformedPoints, deCasteljauAnimationState, step)
+                drawDeCasteljauCurve(transformedPoints, step)
+                drawDeCasteljauAtT(transformedPoints, deCasteljauAnimationState, true)
+                //drawDeCasteljauAtT(transformedPoints, deCasteljauAnimationState, step)
                 //console.log(deCasteljauAnimationStateOrder)
                 if (deCasteljauAnimationStateOrder) {
                     deCasteljauAnimationState += step;
@@ -234,7 +274,7 @@ export function refreshCanvas() {
                 }
             }
             else {
-                drawDeCasteljau(transformedPoints, 1, step)
+                drawDeCasteljauCurve(transformedPoints, step)
             }
         }
     }
@@ -284,7 +324,6 @@ function getTransformedList(original) {
     })
 }
 
-console.log('c1,', c1)
 updateList(c1)
 
 const axisGroup = drawAxisGraduation();

@@ -27,7 +27,8 @@ export class Settings {
 	rotationCenterX = 0;
 	rotationCenterY = 0;
 
-	selectedAlgorithm = 'bernstein'
+	//selectedAlgorithm = 'bernstein'
+	selectedAlgorithm = 'decasteljau'
 
 	animationDecasteljau = true
 

@@ -26,12 +26,12 @@
       <legend>Choisir l'algorithme à utiliser:</legend>
 
       <div id="div-bernstein">
-        <input class="radio radio-success" type="radio" id="radio-bernstein" name="algo" checked />
+        <input class="radio radio-success" type="radio" id="radio-bernstein" name="algo" />
         <label>Bernstein</label>
       </div>
 
       <div id="div-decasteljau">
-        <input class="radio radio-success" type="radio" id="radio-decastleljau" name="algo" />
+        <input class="radio radio-success" type="radio" id="radio-decastleljau" name="algo" checked />
         <label>De Casteljau</label>
         <div>
           <input class="checkbox checkbox-success" type="checkbox" id="animation-decastleljau" checked />
@@ -56,12 +56,21 @@
       <input id="is-curve-visible" type="checkbox" class="toggle toggle-success" checked /> Afficher la courbe
 
       <h1 class="text-xl" id="title-params">Paramètres de la courbe 1</h1>
-      Ajouter un point
-      <br>
-      X
-      <input class="input input-bordered input-sm input-info w-full" id="input-x" type="text" />
-      Y
-      <input class="input input-bordered input-sm input-info w-full" id="input-y" type="text" />
+      <div class="flex w-full">
+        <div class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
+          Ajouter un point
+          <br>
+          X
+          <input class="input input-bordered input-sm input-info w-full" id="input-x" type="text" />
+          Y
+          <input class="input input-bordered input-sm input-info w-full" id="input-y" type="text" />
+
+
+        </div>
+        <div class="divider divider-horizontal">OU</div>
+        <div class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">Cliquez sur le plan</div>
+      </div>
+
       <button class="btn btn-primary" id="input-add">Ajouter</button>
 
       <br />
@@ -174,9 +183,17 @@
     <div class="divider"></div>
 
     <div>
-      Polynôme de Bernstein
 
-      <canvas id="canvas-polynomes"></canvas>
+      <div class="flex justify-center align-middle">
+        <div class="text-center">
+          <div class="text-center">
+            Polynôme de Bernstein
+            <br>
+            (nécessite d'être en mode "Bernstein")
+          </div>
+          <canvas id="canvas-polynomes"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 
