@@ -97,6 +97,7 @@ export function drawAxisGraduation() {
 }
 
 
+// Supprime un noeud et tous ses enfants (pour éviter les fuites de mémoire)
 export function disposeNode(child) {
     if (child.geometry)
         child.geometry.dispose()
@@ -115,6 +116,7 @@ export function choose(n, k) {
     return (n * choose(n - 1, k - 1)) / k;
 }
 
+// Arrondi à deux décimales près
 export function round2(num) {
     return Math.round(num * 100) / 100
 }

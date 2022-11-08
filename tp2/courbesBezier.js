@@ -41,7 +41,7 @@ let deCasteljauAnimationStateOrder = true;
 
 
 
-//Nos figures de controles de beziers principales
+//Données d'initialisation
 const c1X = 10
 const c1Y = 10
 const c1S = 10
@@ -103,7 +103,6 @@ function bernstein(n, i, t) {
     }
 
     polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
-
     return bernstein;
 }
 
@@ -148,8 +147,9 @@ function drawControlPoints(controlPoints) {
 //Dessine la methode de Casteljau a un t
 function drawDeCasteljauAtT(points, t, drawConstruction) {
 
+    // Calcule le point P, indice J, exposant K de manière récursif
     function pointJK(j, k, t, coords) {
-        if (k == 0) return points[j][coords];
+        if (k == 0) return points[j][coords]; // Cas de base
         return (1 - t) * pointJK(j, k - 1, t, coords) + t * pointJK(j + 1, k - 1, t, coords);
     }
 
@@ -181,8 +181,9 @@ function drawDeCasteljauAtT(points, t, drawConstruction) {
     return listOfGroups[listOfGroups.length-1][0];
 }
 
-//Dessine la courbe final de casteljau
+// Trace l'entiéreté de la courbe de Casteljau
 function drawDeCasteljauCurve(points, step) {
+    if (points.length < 3) return;
     const finalPoints = []
     let t = 0;
     while (t < 1) {

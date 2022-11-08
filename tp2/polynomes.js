@@ -1,8 +1,6 @@
 import { polyNomeBernestein } from "./courbesBezier.js";
 import {disposeNode} from "./utils.js";
 
-
-
 const canvas = document.getElementById('canvas-polynomes')
 const renderer = new THREE.WebGLRenderer({ canvas });
 const w = 200
