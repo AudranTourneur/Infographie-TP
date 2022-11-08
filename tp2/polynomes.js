@@ -16,6 +16,8 @@ renderer.setSize(w, h);
 // "Far": Distance maximale à laquelle les objets seront affichés
 const camera = new THREE.PerspectiveCamera(45, w / h, 0.5, 1000);
 camera.position.z = 1.5;
+camera.position.x = 0.5;
+camera.position.y= 0.5;
 camera.lookAt(0.5, 0.5, 0);
 
 // Instanciation de la scène
@@ -46,6 +48,7 @@ function refreshCanvas(){
 }
 
 setInterval(() => {
+	console.log(polyNomeBernestein.length)
 	refreshCanvas();
 	renderer.render(scene, camera);
 }, 1000);

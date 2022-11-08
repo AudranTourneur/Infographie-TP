@@ -1,5 +1,5 @@
 import { listOfControlStructures } from "./courbesBezier.js"
-import { handleClick, deleteAllPoints } from "./gui.js"
+import { handleClick, deleteAllPoints, updateList } from "./gui.js"
 
 //TODO faut checker les inputs pour etre sure que c des nombres
 function manageInputGroup(domId, object, prop) {
@@ -94,6 +94,8 @@ export class Settings {
 				document.getElementById('title-params').innerText = 'Paramètres de la courbe ' + this.currentlySelectedTab
 
 				document.getElementById('is-curve-visible').checked = listOfControlStructures[this.currentlySelectedTab - 1].visible
+
+				updateList(this.getCurrentlySelectedCurve(listOfControlStructures));
 			})
 		}
 

@@ -35,6 +35,8 @@ export function drawAxisGraduation() {
     let axisGroup= new THREE.Group();
     const axisMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
     const gradSize = 0.15;     //Half of the size of a graduation
+    axisMaterial.opacity=0.35;
+    axisMaterial.transparent=true;
 
     const Xpoints = [];
     const Ypoints = [];

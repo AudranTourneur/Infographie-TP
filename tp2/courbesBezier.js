@@ -58,7 +58,7 @@ let c2 = {
         { x: 10, y: 0 },
         { x: 0, y: 10 },
         { x: 10, y: 10 }
-    ], visible: true
+    ], visible: false
 }
 
 let c3 = {
@@ -66,8 +66,8 @@ let c3 = {
         { x: 0, y: 0 },
         { x: 10, y: 10 },
         { x: 0, y: 10 },
-        { x: 10, y: 10 }
-    ], visible: true
+        { x: 10, y: 0 }
+    ], visible: false
 }
 
 export let listOfControlStructures = [c1, c2, c3]
@@ -79,12 +79,14 @@ const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 //list of strings of our bernestein polynomes
 export const polyNomeBernestein = [];
 
+
+
 function bernstein(n, i, t) {
     // i ème polynôme de Bernstein évalué en un t entre 0 et 1
     const bernstein = choose(n, i) * Math.pow(t, i) * Math.pow(1 - t, n - i);
-    if ((polyNomeBernestein.length - 1) != n) {
-        //TODO if the list if has more points than n delete excess points
-        //if()
+    //if ((polyNomeBernestein.length - 1) != n) {
+        polyNomeBernestein.splice(n);
+        
         let bernesteinPolyString = choose(n, i) + " * t^" + i + " * (1-t)^" + (n - i);
         let bernesteinPolyPoints = [];
         for (let t = 0; t <= 1; t += 0.01) {
@@ -92,7 +94,7 @@ function bernstein(n, i, t) {
             bernesteinPolyPoints.push({ x: t, y: y });
         }
         polyNomeBernestein[i] = ({ string: bernesteinPolyString, points: bernesteinPolyPoints });
-    }
+    //}
     return bernstein;
 }
 
@@ -129,7 +131,7 @@ function drawBernstein(points) {
 const controlMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 3 })
 
 function drawControlPoints(controlPoints) {
-    const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+    const threePoints = controlPoints.map(e =>new THREE.Vector3(e.x, e.y, 0));
     const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
     const controlPolygon = new THREE.Line(polyGeom, controlMaterial);
     scene.add(controlPolygon)
@@ -203,7 +205,6 @@ export function refreshCanvas() {
 
     for (const curve of listOfControlStructures) {
         if (!curve.visible) {
-            console.log('continue');
             continue;
         }
 
