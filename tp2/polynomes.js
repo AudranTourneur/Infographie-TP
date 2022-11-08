@@ -1,17 +1,14 @@
 import { polyNomeBernestein } from "./courbesBezier.js";
 import {disposeNode} from "./utils.js";
 
+//On recupère les données pour initialiser un deuxieme canvas pour afficher les polynomes de bernstein
 const canvas = document.getElementById('canvas-polynomes')
 const renderer = new THREE.WebGLRenderer({ canvas });
 const w = 200
 const h = 200
 renderer.setSize(w, h);
 
-// Création d'une caméra (mode perspective) avec arguments respectivement :
-// FOV : 45 (field of view, champ de vision) 
-// Ratio d'aspect (longueur sur hauteur de la fenêtre)
-// "Near": Distance minimale à laquelle les objets seront affichés
-// "Far": Distance maximale à laquelle les objets seront affichés
+//Comme on travail entre 0 et 1 on met la caméra dans un bonne position pour faciliter la lecture
 const camera = new THREE.PerspectiveCamera(45, w / h, 0.5, 1000);
 camera.position.z = 1.5;
 camera.position.x = 0.5;
@@ -25,6 +22,7 @@ scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
+//Dessine les poly de bernstein
 function drawbernsteinPoly() {
 	polyNomeBernestein.forEach(elt => {
 		let bernsteinPolyPoints = []
@@ -45,8 +43,8 @@ function refreshCanvas(){
 	drawbernsteinPoly();
 }
 
+//Met a jour notre canvas toutes les secondes
 setInterval(() => {
-	console.log(polyNomeBernestein.length)
 	refreshCanvas();
 	renderer.render(scene, camera);
 }, 1000);

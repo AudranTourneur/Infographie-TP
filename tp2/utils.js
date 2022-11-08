@@ -8,7 +8,6 @@ export function uuid() {
 
 // https://stackoverflow.com/a/56416622
 export function clickEventToWorldCoords(e, canvas, camera) {
-    console.log(e)
     // get x,y coords into canvas where click occurred
     const rect = canvas.getBoundingClientRect(),
         x = e.clientX - rect.left,
@@ -27,7 +26,6 @@ export function clickEventToWorldCoords(e, canvas, camera) {
     const distance = -camera.position.z / mouse.z,
         scaled = mouse.multiplyScalar(distance),
         coords = camera.position.clone().add(scaled);
-    console.log('coords', coords)
     return coords;
 }
 

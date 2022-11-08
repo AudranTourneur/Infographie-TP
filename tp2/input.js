@@ -83,7 +83,6 @@ export class Settings {
 		})
 
 		document.getElementById('canvas').addEventListener('click', event => {
-			console.log('click', event)
 			handleClick(event, canvas, camera)
 		})
 
@@ -95,7 +94,6 @@ export class Settings {
 		const tabs = [1, 2, 3]
 		for (const tabId of tabs) {
 			document.getElementById(`tab-${tabId}`).addEventListener('click', () => {
-				console.log('tab+' + tabId)
 
 				document.getElementById(`tab-${this.currentlySelectedTab}`).classList.toggle('tab-active')
 				this.currentlySelectedTab = tabId
@@ -112,9 +110,6 @@ export class Settings {
 		document.getElementById('is-curve-visible').addEventListener('change', e => {
 			const selectedObject = listOfControlStructures[this.currentlySelectedTab - 1]
 			selectedObject.visible = e.target.checked
-			console.log('update', selectedObject.visible)
-			console.log(selectedObject)
-			console.log(listOfControlStructures)
 		})
 
 		document.getElementById('input-add').addEventListener('click', event => {

@@ -178,7 +178,11 @@ function drawDeCasteljauAtT(points, t, drawConstruction) {
             }
         }
     }
-    return listOfGroups[listOfGroups.length-1][0];
+
+    //Condition pour eviter de casser notre appli en lisant qlq d'indefini si on supprime tous les points
+    if(listOfGroups[listOfGroups.length-1])
+        return listOfGroups[listOfGroups.length-1][0];
+    else return -1;
 }
 
 // Trace l'entiéreté de la courbe de Casteljau

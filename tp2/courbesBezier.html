@@ -11,12 +11,14 @@
 </head>
 
 <body>
+  <!--Premier container qui contient toute notre interface pour modifier,ajouter suprrimer nos points et choisir une courbe-->
   <div id="container">
 
     <h1 class="text-2xl mb-4">
       Paramètres généraux
     </h1>
 
+    <!--Sélection de lalgorithme à utiliser pour l'affichage-->
     <fieldset class="py-4">
       <legend>Choisir l'algorithme à utiliser:</legend>
 
@@ -39,15 +41,16 @@
 
     <div class="divider"></div>
 
-
+    <!--Les différents onglets pour afficher les courbes différentes-->
     <div class="tabs">
       <a id="tab-1" class="tab tab-bordered tab-active">Courbe 1</a>
       <a id="tab-2" class="tab tab-bordered">Courbe 2</a>
       <a id="tab-3" class="tab tab-bordered">Courbe 3</a>
     </div>
+
     <div class="bg-base-200 p-4">
 
-
+      <!--Un toggle pour afficher la courbe de l'onglet actif-->
       <input id="is-curve-visible" type="checkbox" class="toggle toggle-success" checked /> Afficher la courbe
 
       <h1 class="text-xl" id="title-params">Paramètres de la courbe 1</h1>
@@ -55,6 +58,7 @@
 
       </div>
 
+      <!--Interface pour ajouter un point a notre structure de controle-->
       <div class="flex flex-col w-full border-opacity-50 mt-4">
         <div class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center h-32">
           <div class="flex flex-col h-full justify-center">
@@ -87,6 +91,7 @@
 
 
       <br />
+      <!--La liste des points du polygone de controle-->
       <div>
         <h2 class="text-lg">
           Liste des points :
@@ -96,6 +101,7 @@
           <span>Transformé</span>
           <span>Actions</span>
         </div>
+        <!--Petit pop-up qui indique à l'utilisateur qu'il doit appuyer sur le plan-->
         <div id="edit-waiting" class="alert alert-info shadow-lg hidden">
           <div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -115,6 +121,7 @@
 
     <div class="divider"></div>
 
+    <!--Interface des transformations à disposition-->
     <div>
       <h2 class="text-lg">Transformations</h2>
       <div class="flex flex-col align-center">
@@ -202,7 +209,7 @@
     <button class="btn btn-primary" id="reset-transformation">Remettre à zéro</button>
 
     <div class="divider"></div>
-
+    <!--La partie d'affichage des polynomes de bernstein-->
     <div>
 
       <div class="flex justify-center align-middle">
@@ -220,26 +227,13 @@
 
   <canvas id="canvas"></canvas>
 
-  <!--  The Modal 
-    <div id="modal-edit" class="modal">
-      Modal content 
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <p>Entrez les nouvelles valeurs pour le point :</p>
-        <input id="input-edit-x" type="text" />
-        <input id="input-edit-y" type="text" />
-        <button id="input-edit-confirm">OK</button>
-      </div>
-    </div>
-    --->
-
+  
+  <!--Appel de tous nos fichiers js-->
   <script type="module" src="deps/three.js"></script>
   <script type="module" src="utils.js"></script>
   <script type="module" src="courbesBezier.js"></script>
   <script type="module" src="polynomes.js"></script>
   <script type="module" src="gui.js"></script>
-  <!--<script src="input.js"></script>-->
-
   <script type="module" src="input.js"></script>
 </body>
 

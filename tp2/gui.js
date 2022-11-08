@@ -12,7 +12,6 @@ import { clickEventToWorldCoords } from "./utils.js"
 // Mise à jour de la liste 
 export function updateList(list) {
   let curve = list.data;
-  console.log('yo', list, curve)
 
   document.getElementById("list-points").innerHTML = ""
   for (const p of list.data) {
@@ -25,12 +24,10 @@ export function updateList(list) {
 
   for (const p of curve) {
     document.getElementById(`delete-${p.id}`).addEventListener('click', () => {
-      console.log('delete', p.id)
       deletePoint(p.id)
     })
 
     document.getElementById(`edit-${p.id}`).addEventListener('click', () => {
-      console.log('edit', p.id)
       editPoint(p.id)
     })
   }
