@@ -81,3 +81,14 @@ function deletePoint(id) {
   updateList(curve)
   refreshCanvas()
 }
+
+function updateTransformation() {
+  const s = new Settings()
+  document.getElementById('translation-x').value = s.translationX
+  document.getElementById('translation-y').value = s.translationY
+  document.getElementById('scale-factor').value = s.scaleFactor
+  document.getElementById('rotation-factor').value = s.rotationFactorDeg
+  document.getElementById('rotation-center-x').value = s.rotationCenterX
+  document.getElementById('rotation-center-y').value = s.rotationCenterY
+
+}
