@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>three.js app</title>
+    <link rel="stylesheet" href="style.css" />
+    <link href="deps/daisyui.min.css" rel="stylesheet" type="text/css" />
+    <script src="deps/tailwind.min.js"></script>
+  </head>
+
+  <body>
+    <!--Premier container qui contient toute notre interface pour modifier, ajouter supprimer nos points et choisir une courbe-->
+    <div id="container">
+      <h1 class="text-2xl mb-4">Paramètres généraux</h1>
+
+      <!--Sélection de l'algorithme à utiliser pour l'affichage-->
+      <fieldset class="py-4">
+        <legend>Choisir l'algorithme à utiliser:</legend>
+
+        <div id="div-bernstein">
+          <input
+            class="radio radio-success"
+            type="radio"
+            id="radio-bernstein"
+            name="algo"
+          />
+          <label>B-splines</label>
+        </div>
+
+        <div id="div-decasteljau">
+          <input
+            class="radio radio-success"
+            type="radio"
+            id="radio-decastleljau"
+            name="algo"
+            checked
+          />
+          <label>De Boor</label>
+          <div class="ml-8 my-2">
+            <input
+              class="checkbox checkbox-success"
+              type="checkbox"
+              id="animation-decastleljau"
+              checked
+            />
+            Animation de De Boor
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="divider"></div>
+
+      <!--Les différents onglets pour afficher les différentes courbes-->
+      <div class="tabs">
+        <a id="tab-1" class="tab tab-bordered tab-active">Courbe 1</a>
+        <a id="tab-2" class="tab tab-bordered">Courbe 2</a>
+        <a id="tab-3" class="tab tab-bordered">Courbe 3</a>
+      </div>
+
+      <div class="bg-base-200 p-4">
+        <!--Un toggle pour afficher la courbe de l'onglet actif-->
+        <input
+          id="is-curve-visible"
+          type="checkbox"
+          class="toggle toggle-success"
+          checked
+        />
+        Afficher la courbe
+
+        <h1 class="text-xl text-center" id="title-params">
+          Paramètres de la courbe 1
+        </h1>
+        <div class="flex w-full"></div>
+
+        <!--Interface pour ajouter un point à notre structure de contrôle-->
+        <div class="flex flex-col w-full border-opacity-50 mt-4">
+          <div
+            class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center h-32"
+          >
+            <div class="flex flex-col h-full justify-center">
+              <div class="text-lg">Ajouter un point</div>
+              <div class="flex flex-row">
+                <div class="w-20">
+                  X
+                  <input
+                    class="input input-bordered input-sm input-info w-full"
+                    id="input-x"
+                    type="text"
+                    value="0"
+                  />
+                </div>
+
+                <div class="w-20">
+                  Y
+                  <input
+                    class="input input-bordered input-sm input-info w-full"
+                    id="input-y"
+                    type="text"
+                    value="0"
+                  />
+                </div>
+
+                <div class="flex flex-col justify-end">
+                  <button class="btn btn-primary btn-sm" id="input-add">
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="divider">OU</div>
+          <div
+            class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center"
+          >
+            Cliquez sur le plan
+          </div>
+        </div>
+
+        <br />
+        <!--La liste des points du polygône de contrôle-->
+        <div>
+          <h2 class="text-lg text-center">Liste des points</h2>
+          <div class="flex justify-around">
+            <span>Coords.</span>
+            <span>Transformé</span>
+            <span>Actions</span>
+          </div>
+          <!--Petit pop-up qui indique à l'utilisateur qu'il doit appuyer sur le plan-->
+          <div id="edit-waiting" class="alert alert-info shadow-lg hidden">
+            <div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                class="stroke-current flex-shrink-0 w-6 h-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              <span
+                >En attente... <br />Cliquez sur le plan pour bouger le
+                point</span
+              >
+            </div>
+          </div>
+          <div id="list-points"></div>
+        </div>
+        <div class="flex justify-center">
+          <button class="btn btn-error" id="reset-points">
+            Supprimer tous les points
+          </button>
+        </div>
+        <br />
+      </div>
+
+      <div class="divider"></div>
+
+      <!--Interface des transformations à disposition-->
+      <div>
+        <h2 class="text-xl text-center mb-4 mt-2">Transformations</h2>
+        <div class="flex flex-col align-center">
+          <div class="input-group">
+            <div class="w-40">Translation X</div>
+            <div class="w-20">
+              <input
+                class="input input-bordered input-sm input-info w-full"
+                type="text"
+                id="translation-x"
+                value="0"
+              />
+            </div>
+            <div>
+              <input
+                class="range range-info"
+                type="range"
+                id="slider-translation-x"
+                min="-30"
+                max="30"
+              />
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="w-40">Translation Y</div>
+
+            <div class="w-20">
+              <input
+                class="input input-bordered input-sm input-info w-full"
+                type="text"
+                id="translation-y"
+                value="0"
+              />
+            </div>
+            <div>
+              <input
+                class="range range-info"
+                type="range"
+                id="slider-translation-y"
+                min="-30"
+                max="30"
+              />
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="w-40">Facteur d'homothétie</div>
+            <div class="w-20">
+              <input
+                class="input input-bordered input-sm input-info w-full"
+                type="text"
+                id="scale-factor"
+                value="1"
+              />
+            </div>
+            <div>
+              <input
+                class="range range-info"
+                type="range"
+                id="slider-scale-factor"
+                min="-5"
+                max="5"
+                step="0.1"
+                value="1"
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="w-40">Angle de rotation (deg)</div>
+
+            <div class="w-20">
+              <input
+                class="input input-bordered input-sm input-info w-full"
+                type="text"
+                id="rotation-factor"
+                value="0"
+              />
+            </div>
+            <div>
+              <input
+                class="range range-info"
+                type="range"
+                id="slider-rotation-factor"
+                min="-360"
+                max="360"
+              />
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="w-40">Centre de rotation X</div>
+
+            <div class="w-20">
+              <input
+                class="input input-bordered input-sm input-info w-full"
+                type="text"
+                id="rotation-center-x"
+                value="0"
+              />
+            </div>
+            <div>
+              <input
+                class="range range-info"
+                type="range"
+                id="slider-rotation-center-x"
+                min="-30"
+                max="30"
+              />
+            </div>
+          </div>
+          <div class="input-group">
+            <div class="w-40">Centre de rotation Y</div>
+
+            <div class="w-20">
+              <input
+                class="input input-bordered input-sm input-info w-full"
+                type="text"
+                id="rotation-center-y"
+                value="0"
+              />
+            </div>
+            <div>
+              <input
+                class="range range-info"
+                type="range"
+                id="slider-rotation-center-y"
+                min="-30"
+                max="30"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-center">
+        <button class="btn btn-primary" id="reset-transformation">
+          Remettre à zéro
+        </button>
+      </div>
+
+      <div class="divider"></div>
+      <!--La partie d'affichage des polynômes de Bernstein-->
+      <div>
+        <div class="flex justify-center items-center">
+          <div class="text-center">
+            <div class="text-center">
+              Courbe B-splines
+              <br />
+              (nécessite d'être en mode "B-splines")
+            </div>
+            <canvas id="canvas-polynomes"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <!--Appel de tous nos fichiers JavaScript-->
+    <script type="module" src="deps/three.js"></script>
+    <script type="module" src="utils.js"></script>
+    <script type="module" src="courbesBSplines.js"></script>
+    <script type="module" src="gui.js"></script>
+    <script type="module" src="input.js"></script>
+  </body>
+</html>
