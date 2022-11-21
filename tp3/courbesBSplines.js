@@ -61,7 +61,9 @@ let c1 = {
     data: [
         { x: c1X + 0 * c1S, y: c1Y + 0 * c1S }, { x: c1X + 0 * c1S, y: c1Y + 1 * c1S },
         { x: c1X + 1 * c1S, y: c1Y + 1 * c1S }, { x: c1X + 1 * c1S, y: c1Y + 0 * c1S },
-        { x: c1X + 1.5 * c1S, y: c1Y + 1.5 * c1S }, { x: c1X + .5 * c1S, y: c1Y + 3 * c1S },
+        { x: c1X + 0.5 * c1S, y: c1Y - 1.5 * c1S },
+        { x: c1X - 0.5 * c1S, y: c1Y - 1.5 * c1S },
+        { x: c1X - 1 * c1S, y: c1Y - 1 * c1S },
     ],
     visible: true
 }
@@ -131,7 +133,7 @@ function drawPointsBSpline(controlPoints, log) {
         return valToReturn
     }
 
-    const colors = [0xFF0000, 0x0000FF, 0x00FFFF, 0xFF00FF, 0xFFFF00]
+    //const colors = [0xFF0000, 0x0000FF, 0x00FFFF, 0xFF00FF, 0xFFFF00]
 
 
     if (log) console.log("borne inférieure de t :" + vecNoeud[ordre - 1]);
@@ -139,10 +141,12 @@ function drawPointsBSpline(controlPoints, log) {
     for (let i = 0; i < nbMorceaux; i++) {
         //for (let i = 0; i < 1; i++) {
 
+        const colorToUse = 0xFFFFFF;
+
         const finalPoints = []  //liste des points finaux de notre courbe de Bspline
-        if (log) console.log('material', i, 'using color', colors[i])
+        if (log) console.log('material', i, 'using color', colorToUse)
         const material =
-            new THREE.LineBasicMaterial({ color: colors[i], linewidth: 3 });
+            new THREE.LineBasicMaterial({ color: colorToUse, linewidth: 3 });
 
         if (log) console.log("-----Pour le morceau n", i);
         if (log) console.log("On va du point de controle ", i, controlPoints[i], " a ", i + ordre - 1, controlPoints[i + ordre - 1]);
@@ -185,10 +189,68 @@ function drawPointsBSpline(controlPoints, log) {
         const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
         const curve = new THREE.Line(polyGeom, material);
 
-        scene.add(curve)
+        scene.add(curve);
     }
 
 
+}
+
+function drawDeBoor(controlPoints) {
+    const k = 4; // ordre
+
+    const n = controlPoints.length - 1;
+
+    console.log('n = ', n, 'k', k)
+
+    const vecteurDeNoeud = [];
+    for (let i = 0; i <= n + k + 1; i++) {
+        vecteurDeNoeud.push(i);
+    }
+
+
+    function alphaIJ(i, j, tStar) {
+        const val = (tStar - vecteurDeNoeud[i]) / (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
+        //console.log(`alphaIJ(${i}, ${j}, ${tStar}) = ${val}`);
+        return val
+    }
+
+    function pIJ(i, j, coords, tStar) {
+        //console.log('tStar being ', tStar)
+        if (j == 0) {
+            //console.log('base i =', i, ' point ', controlPoints[i])
+            return controlPoints[i][coords];
+        }
+        const val = (1 - alphaIJ(i, j, tStar)) * pIJ(i - 1, j - 1, coords, tStar) + alphaIJ(i, j, tStar) * pIJ(i, j - 1, coords, tStar);
+        //console.log('val ', val, i, j)
+        return val;
+    }
+
+    const finalPoints = [];
+
+    //for (let t = n - 1; t < k + 1; t++) {
+
+    const step = 0.2;
+    // 3, 6
+    for (let r = k-1; r < n+1; r++) {
+        console.log('r = ', r)
+        for (let t = vecteurDeNoeud[r]; t < vecteurDeNoeud[r + 1]; t += step) {
+            //console.log('input ', r; k-1, 'x')
+            const point = {
+                x: pIJ(r, k - 1, 'x', t),
+                y: pIJ(r, k - 1, 'y', t),
+            };
+            console.log("point ", point)
+            finalPoints.push(point)
+        }
+    }
+
+    const newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+    const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
+    const curve = new THREE.Line(polyGeom, blueMaterial);
+
+    scene.add(curve);
+
+    //return finalPoints;
 }
 
 
@@ -318,7 +380,8 @@ export function refreshCanvas() {
 
     }
 
-    drawPointsBSpline(c1.data, false)
+    //drawPointsBSpline(c1.data, false);
+    drawDeBoor(c1.data);
 }
 
 
@@ -330,7 +393,7 @@ function animate() {
     // On demande au naviguateur d'éxecuter cette fonction en continue (60 fois
     // par seconde en général)
     requestAnimationFrame(animate);
-    //refreshCanvas();
+    refreshCanvas();
 
     // On fait le rendu graphique à chaque frame puisque l'état du monde a
     // peut-être été modifié
