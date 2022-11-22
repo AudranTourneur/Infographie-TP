@@ -50,6 +50,9 @@ export class Settings {
 	// Onglet actif
 	currentlySelectedTab = 1;
 
+	// Le degre de notre Bspline
+	degree_algo = 3;
+
 	// Constructeur de la classe dans lequel est déclaré l'ensemble des event listeners
 	constructor(canvas, camera) {
 		// Singleton pattern
