@@ -45,7 +45,7 @@ export function drawAxisGraduation() {
     let axisGroup = new THREE.Group();
     // Création du matériau et des constantes numériques
     const axisMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-    const gradSize = 0.15;     
+    const gradSize = 0.15;
     axisMaterial.opacity = 0.35;
     axisMaterial.transparent = true;
 
@@ -80,7 +80,7 @@ export function drawAxisGraduation() {
         // Création des graduations
         // Graduations positives 
         gradX.push(new THREE.Vector3(i, gradSize, 0));
-        gradX.push(new THREE.Vector3(i, -gradSize, 0)); 
+        gradX.push(new THREE.Vector3(i, -gradSize, 0));
         // Graduations négatives
         gradXNeg.push(new THREE.Vector3(-i, gradSize, 0));
         gradXNeg.push(new THREE.Vector3(-i, -gradSize, 0));
@@ -141,4 +141,13 @@ export function choose(n, k) {
 // Arrondi à deux décimales près
 export function round2(num) {
     return Math.round(num * 100) / 100
+}
+
+// Ajoute un objet à un tableau, le tableau est crée s'il n'existe pas
+export function addToArrayOrCreate(obj, key, elem) {
+    if (obj[key] === undefined) {
+        obj[key] = [elem];
+    } else {
+        obj[key].push(elem);
+    }
 }
