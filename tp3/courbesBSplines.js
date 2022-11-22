@@ -45,7 +45,7 @@ const controlMaterial =
     new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
 
 // Liste des polynômes de Bernstein qu'on dessine dans le fichier polynomes.js
-export const polynomeBernestein = [];
+export const bSplinePolyPoints = [];
 
 // Utilisée pour ls animations des traits de construction
 let deCasteljauAnimationState = 0;
@@ -101,15 +101,15 @@ function drawPointsBSpline(controlPoints, log) {
     let ordre = degre + 1;
     let vecNoeud = [];
     let n = controlPoints.length - 1;  // length des points de controles
-    let nbMorceaux = n - ordre + 2;
+    //let nbMorceaux = n - ordre + 2; ai final le nbMorceau est inutile, c'est simplement une manière de voir la chose
     // Noter vecteur de noeud est uniforme peut etre que plus tard on peut le
     // ettre en entree d'utilisateur
+    bSplinePolyPoints.splice(n);
     for (let i = 0; i <= n + ordre; i++) vecNoeud.push(i);
     if (log) console.log(vecNoeud);
-    if (log) console.log(controlPoints);
-    if (log) console.log("ordre :", ordre);
-    if (log) console.log("nbmorceaux", nbMorceaux);
-    if (log) console.log("Nbre de points de controle", n);
+    //if (log) console.log(controlPoints);
+    //if (log) console.log("ordre :", ordre);
+    //if (log) console.log("Nbre de points de controle", n);
     // Renvoie la base N, indice i, exposant m pour un t donné
     // etape = m
     function baseBSpline(m, t, i) {
@@ -119,74 +119,41 @@ function drawPointsBSpline(controlPoints, log) {
             else
                 return 0;
         }
-        const valToReturn =
-            ((t - vecNoeud[i]) / (vecNoeud[i + m] - vecNoeud[i])) *
+        return ((t - vecNoeud[i]) / (vecNoeud[i + m] - vecNoeud[i])) *
             baseBSpline(m - 1, t, i) +
             ((vecNoeud[i + m + 1] - t) / (vecNoeud[i + m + 1] - vecNoeud[i + 1])) *
             baseBSpline(m - 1, t, i + 1);
-        if (log) {
-            if (!Number.isFinite(valToReturn)) console.log('suspect', valToReturn)
-            //if (valToReturn == 0) console.log('zero')
+    }
+    //if (log) console.log("borne inférieure de t :" + vecNoeud[ordre - 1]);
+    //if (log) console.log("borne supérieur de t :", vecNoeud[n + 1]);
+    const finalPoints = []  //liste des points finaux de notre courbe de Bspline
+    for (let t = vecNoeud[ordre - 1]; t < vecNoeud[n + 1]; t += step) {
+        let sumX = 0;
+        let sumY = 0;
+        for (let i = 0; i < n; i++) {
+            let tmp = baseBSpline(degre, t, i);
+            sumX += controlPoints[i].x * tmp;
+            sumY += controlPoints[i].y * tmp;
         }
-        return valToReturn
+        finalPoints.push({ x: sumX, y: sumY })
     }
 
-    const colors = [0xFF0000, 0x0000FF, 0x00FFFF, 0xFF00FF, 0xFFFF00]
-
-
-    if (log) console.log("borne inférieure de t :" + vecNoeud[ordre - 1]);
-    if (log) console.log("borne supérieur de t :", vecNoeud[n + 1]);
-    for (let i = 0; i < nbMorceaux; i++) {
-        //for (let i = 0; i < 1; i++) {
-
-        const finalPoints = []  //liste des points finaux de notre courbe de Bspline
-        if (log) console.log('material', i, 'using color', colors[i])
-        const material =
-            new THREE.LineBasicMaterial({ color: colors[i], linewidth: 3 });
-
-        if (log) console.log("-----Pour le morceau n", i);
-        if (log) console.log("On va du point de controle ", i, controlPoints[i], " a ", i + ordre - 1, controlPoints[i + ordre - 1]);
-
-        // ordre k
-        // degré m
-
-        /*
-        for (let t = vecNoeud[ordre - 1]; t < vecNoeud[n + 1]; t += step) {
-            let sumX = 0;
-            let sumY = 0;
-
-            for (let indicePoint = i; indicePoint < i + ordre - 1; indicePoint++) {
-                //console.log('reading n=', n, controlPoints[n])
-                let tmp = baseBSpline(degre, t, indicePoint);
-                //console.log('val de baseBSpline', baseBSpline(degre, t, indicePoint), {degre, t, indicePoint})
-                if (log && tmp == 0) console.log('ça vaut zéro wesh')
-                sumX += controlPoints[indicePoint].x * tmp;
-                sumY += controlPoints[indicePoint].y * tmp;
-            }
-
-            finalPoints.push({ x: sumX, y: sumY })
-
+    let bSpline=[];
+    for(let i =0;i<=n;i++){
+        bSpline=[];
+        if(log) console.log(vecNoeud[0]);
+        if(log) console.log(vecNoeud[n+ordre]);
+        for(let t_=vecNoeud[0];t_<vecNoeud[n+ordre];t_+=step){
+            bSpline.push({x:t_,y:baseBSpline(degre,t_,i)});
         }
-        */
-
-        for (let t = vecNoeud[ordre - 1]; t < vecNoeud[n + 1]; t += step) {
-            let sumX = 0;
-            let sumY = 0;
-            for (let i = 0; i < n; i++) {
-                let tmp = baseBSpline(degre, t, i);
-                sumX += controlPoints[i].x * tmp;
-                sumY += controlPoints[i].y * tmp;
-            }
-            finalPoints.push({ x: sumX, y: sumY })
-        }
-
-
-        const newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
-        const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
-        const curve = new THREE.Line(polyGeom, material);
-
-        scene.add(curve)
+        bSplinePolyPoints.push(bSpline);
     }
+    const newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+    const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
+    const curve = new THREE.Line(polyGeom,blueMaterial );
+
+    scene.add(curve)
+
 
 
 }
