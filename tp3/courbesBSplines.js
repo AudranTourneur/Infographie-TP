@@ -134,9 +134,7 @@ function drawPointsBSpline(controlPoints) {
     let bSpline = [];
     for (let i = 0; i <= n; i++) {
         bSpline = [];
-        //if(log) console.log(vecNoeud[0]);
-        //if(log) console.log(vecNoeud[n+ordre]);
-        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre]; t_ += step) {
+        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre-1]; t_ += step) {
             bSpline.push({ x: t_, y: baseBSpline(degre, t_, i) });
         }
         bSplinePolyPoints.push(bSpline);

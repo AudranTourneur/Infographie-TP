@@ -49,7 +49,7 @@ function resetCamera(){
 	camera.position.z=lookAt;
 	camera.lookAt(lookAt,0.5,0);
 }
-
+let compteur=0;
 // Mise à jour du canvas
 function refreshCanvas() {
 	//console.log(bSplinePolyPoints);
@@ -57,6 +57,9 @@ function refreshCanvas() {
 		disposeNode(child);
 		scene.remove(child);
 	}
+	compteur++;
+	
+	console.log(bSplinePolyPoints);
 	drawbernsteinPoly();
 }
 
