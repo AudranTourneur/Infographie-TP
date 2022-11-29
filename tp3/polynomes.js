@@ -52,7 +52,7 @@ function resetCamera(){
 
 // Mise à jour du canvas
 function refreshCanvas() {
-	console.log(bSplinePolyPoints);
+	//console.log(bSplinePolyPoints);
 	for (const child of scene.children) {
 		disposeNode(child);
 		scene.remove(child);

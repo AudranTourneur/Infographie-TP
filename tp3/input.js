@@ -53,6 +53,10 @@ export class Settings {
 	// Le degre de notre Bspline
 	degree_algo = 3;
 
+	//Vecteur noeud de notre Bspline
+	vecteur_noued_string="[0,1,2,3,4,5]";
+	vecteur_noued=[0,1,2,3,4,5];
+
 	// Constructeur de la classe dans lequel est déclaré l'ensemble des event listeners
 	constructor(canvas, camera) {
 		// Singleton pattern
@@ -109,6 +113,17 @@ export class Settings {
 		document.getElementById('reset-points').addEventListener('click', () => {
 			deleteAllPoints()
 		})
+		document.getElementById('degree').addEventListener('change',(event)=>{
+			this.degree_algo=event.target.value;
+		});
+		document.getElementById('vecteur-noeud').addEventListener('change',(event)=>{
+			const inputStr = event.target.value;
+			const regex = new RegExp(/^((\d+(?:\.\d+)?),?)*$/gm)
+			if (regex.test(inputStr)) {
+				this.vecteur_noued_string=event.target.value;
+				this.convertStringToTab()
+			}
+		});
 
 
 		// Gestion des onglets
@@ -153,5 +168,15 @@ export class Settings {
 	getCurrentlySelectedCurve(listOfCurves) {
 		const selected = listOfCurves[this.currentlySelectedTab - 1]
 		return selected
+	}
+
+	convertStringToTab(){
+		let vec=this.vecteur_noued_string.split(',');
+		let tmp=[]
+		vec.forEach(e=>{
+			if (e != '' && Number.isFinite(Number(e)))
+				tmp.push(Number(e));
+		})
+		this.vecteur_noued=tmp;
 	}
 }

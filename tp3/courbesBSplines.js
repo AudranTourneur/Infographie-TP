@@ -98,17 +98,19 @@ export let listOfControlStructures = [c1, c2, c3];
 function drawPointsBSpline(controlPoints, log) {
     const step = 0.01;      //pas de t 
     //console.log(controlPoints)
-
-    let degre = 3;  // Pour l'instant 3 mais c une donne de l'utilisateur
+    log=true;
+    let degre = settings.degree_algo;  // Pour l'instant 3 mais c une donne de l'utilisateur
     let ordre = degre + 1;
-    let vecNoeud = [];
+    let vecNoeud = settings.vecteur_noued;
     let n = controlPoints.length - 1;  // length des points de controles
     //let nbMorceaux = n - ordre + 2; ai final le nbMorceau est inutile, c'est simplement une manière de voir la chose
     // Noter vecteur de noeud est uniforme peut etre que plus tard on peut le
     // ettre en entree d'utilisateur
     bSplinePolyPoints.splice(n);
     for (let i = 0; i <= n + ordre; i++) vecNoeud.push(i);
+    
     if (log) console.log(vecNoeud);
+    if (log) console.log(degre);
     //if (log) console.log(controlPoints);
     //if (log) console.log("ordre :", ordre);
     //if (log) console.log("Nbre de points de controle", n);
@@ -143,8 +145,8 @@ function drawPointsBSpline(controlPoints, log) {
     let bSpline=[];
     for(let i =0;i<=n;i++){
         bSpline=[];
-        if(log) console.log(vecNoeud[0]);
-        if(log) console.log(vecNoeud[n+ordre]);
+        //if(log) console.log(vecNoeud[0]);
+        //if(log) console.log(vecNoeud[n+ordre]);
         for(let t_=vecNoeud[0];t_<vecNoeud[n+ordre];t_+=step){
             bSpline.push({x:t_,y:baseBSpline(degre,t_,i)});
         }
@@ -165,7 +167,7 @@ let deBoorStateOrder = 1; // 1 croissant | -1 décroissant
 function drawDeBoorAt(controlPoints, k, r, t) {
     const n = controlPoints.length - 1;
 
-    console.log('n', n, 'k', k, 'r', r, 't', t)
+    //console.log('n', n, 'k', k, 'r', r, 't', t)
 
     const vecteurDeNoeud = [];
     for (let i = 0; i <= n + k + 1; i++)
@@ -207,7 +209,7 @@ function drawDeBoorAt(controlPoints, k, r, t) {
 
     scene.add(curve);
 
-    console.log(constructionPointsCoords)
+    //console.log(constructionPointsCoords)
 
     for (const key of Object.keys(constructionPointsCoords.x)) {
 
@@ -258,8 +260,8 @@ function drawDeBoorAnimated(controlPoints) {
     try {
         drawDeBoorAt(controlPoints, k, currentR, currentTime);
     } catch (e) {
-        console.log(e)
-        console.warn("Error at :", currentR, currentTime)
+        //console.log(e)
+        //console.warn("Error at :", currentR, currentTime)
     }
 
     updateDeBoorState();
@@ -270,7 +272,7 @@ function drawDeBoor(controlPoints) {
 
     const n = controlPoints.length - 1;
 
-    console.log('n = ', n, 'k', k)
+    //console.log('n = ', n, 'k', k)
 
     const vecteurDeNoeud = [];
     for (let i = 0; i <= n + k + 1; i++)
