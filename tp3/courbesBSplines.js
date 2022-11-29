@@ -94,7 +94,7 @@ function drawPointsBSpline(controlPoints, log) {
     const step = 0.01;      //pas de t 
     //console.log(controlPoints)
     //let degre = settings.degreeAlgo;  // Pour l'instant 3 mais c une donne de l'utilisateur
-    let degre = 3;
+    let degre = settings.degreeAlgo;
     let ordre = degre + 1;
     let vecNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet();
     // let vecNoeud = [];
@@ -245,10 +245,6 @@ function drawDeBoorAnimated(controlPoints) {
     const minimum = k - 1;
     const maximum = n + 1;
 
-    const vecteurDeNoeud = [];
-    for (let i = 0; i <= n + k + 1; i++)
-        vecteurDeNoeud.push(i);
-
     const length = maximum - minimum;
     const currentTime = minimum + deBoorState * length;
     const currentR = Math.floor(currentTime);
@@ -258,14 +254,14 @@ function drawDeBoorAnimated(controlPoints) {
         drawDeBoorAt(controlPoints, k, currentR, currentTime);
     } catch (e) {
         //console.log(e)
-        //console.warn("Error at :", currentR, currentTime)
+        console.warn("Error at :", currentR, currentTime)
     }
 
     updateDeBoorState();
 }
 
-function drawDeBoor(controlPoints) {
-    const k = 4; // ordre
+function drawDeBoorStatic(controlPoints) {
+    const k = settings.degreeAlgo + 1;
 
     const n = controlPoints.length - 1;
 
@@ -280,8 +276,6 @@ function drawDeBoor(controlPoints) {
         return val
     }
 
-
-
     function pIJ(i, j, coords, tStar) {
         if (j == 0)
             return controlPoints[i][coords];
@@ -291,7 +285,6 @@ function drawDeBoor(controlPoints) {
         return val;
     }
 
-    const constructionPoints = [];
     const finalPoints = [];
 
     const step = 0.2;
@@ -439,7 +432,7 @@ export function refreshCanvas() {
 
     if (settings.selectedAlgorithm == 'deboor') {
         drawDeBoorAnimated(c1.data);
-        drawDeBoor(c1.data);
+        drawDeBoorStatic(c1.data);
     }
     else if (settings.selectedAlgorithm == 'bspline') {
         drawPointsBSpline(c1.data, false);
