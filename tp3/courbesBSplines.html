@@ -28,15 +28,19 @@
         <label>De Boor</label>
       </div>
 
+      <br>
+
       <div id="div-degree-algo">
-        <input class="input input-bordered input-sm input-info w-full" type="number" id="degree" min="2" 
-          value="3">
         <label for="degree">Degré de l'algo</label>
+        <input class="input input-bordered input-sm input-info w-full" type="number" id="degree" min="0" 
+          value="3">
       </div>
+
+      <br>
 
       <div id="div-vecteur-noeud">
         <input class="input input-bordered input-sm input-info w-full" type="text" id="vecteur-noeud"
-          value="0,1,2,3,4,5">
+          value="0,1,2,3,4,5,6,7,8,9">
         <small>Format <code>x,x,x,x</code></small>
 
         <div id="vecnoeud-warning" class="alert alert-warning shadow-lg hidden">
@@ -57,20 +61,9 @@
 
     <div class="divider"></div>
 
-    <!--Les différents onglets pour afficher les différentes courbes-->
-    <div class="tabs">
-      <a id="tab-1" class="tab tab-bordered tab-active">Courbe 1</a>
-      <a id="tab-2" class="tab tab-bordered">Courbe 2</a>
-      <a id="tab-3" class="tab tab-bordered">Courbe 3</a>
-    </div>
-
     <div class="bg-base-200 p-4">
-      <!--Un toggle pour afficher la courbe de l'onglet actif-->
-      <input id="is-curve-visible" type="checkbox" class="toggle toggle-success" checked />
-      Afficher la courbe
-
       <h1 class="text-xl text-center" id="title-params">
-        Paramètres de la courbe 1
+        Paramètres de la courbe
       </h1>
       <div class="flex w-full"></div>
 

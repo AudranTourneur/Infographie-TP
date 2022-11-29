@@ -86,31 +86,23 @@ let c3 = {
     visible: false
 }
 
+const STEP = 0.01;
+
 // Liste qui contient les structures de contrôle placées par l'utilisateur
 // Par défaut, elle est construite avec c1, c2 et c3
-export let listOfControlStructures = [c1, c2, c3];
+export let listOfControlStructures = [c1];
 
-function drawPointsBSpline(controlPoints, log) {
-    const step = 0.01;      //pas de t 
-    //console.log(controlPoints)
-    //let degre = settings.degreeAlgo;  // Pour l'instant 3 mais c une donne de l'utilisateur
+function drawPointsBSpline(controlPoints) {
+    const step = STEP;      //pas de t 
     let degre = settings.degreeAlgo;
     let ordre = degre + 1;
     let vecNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet();
-    // let vecNoeud = [];
     let n = controlPoints.length - 1;  // length des points de controles
-    //let nbMorceaux = n - ordre + 2; ai final le nbMorceau est inutile, c'est simplement une manière de voir la chose
-    // Noter vecteur de noeud est uniforme peut etre que plus tard on peut le
-    // ettre en entree d'utilisateur
+
     bSplinePolyPoints.splice(n);
 
     //for (let i = 0; i <= n + ordre; i++) vecNoeud.push(i);
 
-    if (log) console.log(vecNoeud);
-    if (log) console.log(degre);
-    //if (log) console.log(controlPoints);
-    //if (log) console.log("ordre :", ordre);
-    //if (log) console.log("Nbre de points de controle", n);
     // Renvoie la base N, indice i, exposant m pour un t donné
     // etape = m
     function baseBSpline(m, t, i) {
@@ -162,18 +154,22 @@ let deBoorState = 0; // entre 0 et 1
 let deBoorStateOrder = 1; // 1 croissant | -1 décroissant
 
 function drawDeBoorAt(controlPoints, k, r, t) {
+    // console.log('k = ', k)
     const n = controlPoints.length - 1;
 
     //console.log('n', n, 'k', k, 'r', r, 't', t)
 
     const vecteurDeNoeud = [];
-    for (let i = 0; i <= n + k + 1; i++)
+    for (let i = 0; i <= n + k; i++)
         vecteurDeNoeud.push(i);
+
+    console.log('ici', JSON.stringify(vecteurDeNoeud))
 
     function alphaIJ(i, j, tStar) {
         const val = (tStar - vecteurDeNoeud[i]) / (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
         return val
     }
+
 
     const constructionPointsCoords = { x: {}, y: {} };
 
@@ -190,43 +186,86 @@ function drawDeBoorAt(controlPoints, k, r, t) {
         return valToReturn;
     }
 
-    const finalPoints = [];
-
-    const step = 0.2;
-    const point = {
+    const pointFinal = {
         x: pIJ(r, k - 1, 'x', t),
         y: pIJ(r, k - 1, 'y', t),
     };
-    finalPoints.push(point)
-
-    const newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
-    const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
-    const curve = new THREE.Line(polyGeom, blueMaterial);
 
 
-    scene.add(curve);
+
+    let jToConstructionPoints = [];
+
+
+    for (let j = 0; j < k; j++) {
+        const debutI = r - k + 1 + j
+        if (debutI < 0) {
+            console.warn('wtf négatif', debutI, 'pour', 'r=', r, 'k=', k)
+        }
+
+        jToConstructionPoints[j] = [];
+
+        for (let i = debutI; i <= r; i++) {   // [r-k-1-j]
+            const constructionPoint = { x: pIJ(i, j, 'x', t), y: pIJ(i, j, 'y', t) }
+
+            jToConstructionPoints[j].push(constructionPoint);
+
+        }
+    }
+
+    console.log('jtCP', jToConstructionPoints)
+
+    let jIndex = 0;
+    for (const currentConstructionPoints of jToConstructionPoints) {
+
+        if (jIndex == jToConstructionPoints.length - 1) {
+            const finalPoint = currentConstructionPoints[0];
+            console.log('affichage point final', finalPoint)
+            const geometry = new THREE.SphereGeometry(.2, 32, 16);
+            const sphere = new THREE.Mesh(geometry, redMaterial);
+            sphere.position.x = finalPoint.x
+            sphere.position.y = finalPoint.y
+            scene.add(sphere)
+        }
+        else {
+            console.log('creatings points for j = ', jIndex)
+
+            const newPoints = currentConstructionPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+
+            const polyGeomConstruction = new THREE.BufferGeometry().setFromPoints(newPoints);
+            const curveConstruction = new THREE.Line(polyGeomConstruction, redMaterial);
+            scene.add(curveConstruction);
+        }
+        jIndex++;
+    }
+
+    //    for (let j = 0; j < k; j++) {
+    //        for (let i = r; i > r - k - 1 - j; i--) {
+    //            console.log('j=', j, 'i=', i)
+    //        }
+    //    }
+
 
     //console.log(constructionPointsCoords)
 
-    for (const key of Object.keys(constructionPointsCoords.x)) {
-
-        const constructionPoints = [];
-        for (let i = 0; i < constructionPointsCoords.x[key].length; i++) {
-            constructionPoints.push(new THREE.Vector3(constructionPointsCoords.x[key][i], constructionPointsCoords.y[key][i], 0));
-        }
-
-
-        const polyGeomConstruction = new THREE.BufferGeometry().setFromPoints(constructionPoints);
-        const curveConstruction = new THREE.Line(polyGeomConstruction, redMaterial);
-        scene.add(curveConstruction);
-
-    }
-
+    // console.log('CPC', constructionPointsCoords)
+    // // 
+    // for (const key of Object.keys(constructionPointsCoords.x)) {
+    //     // 
+    //     const constructionPoints = [];
+    //     for (let i = 0; i < constructionPointsCoords.x[key].length; i++) {
+    //         constructionPoints.push(new THREE.Vector3(constructionPointsCoords.x[key][i], constructionPointsCoords.y[key][i], 0));
+    //     }
+    //     // 
+    //     const polyGeomConstruction = new THREE.BufferGeometry().setFromPoints(constructionPoints);
+    //     const curveConstruction = new THREE.Line(polyGeomConstruction, redMaterial);
+    //     scene.add(curveConstruction);
+    //     console.log('oui')
+    // }
 }
 
 
 function updateDeBoorState() {
-    const step = 0.005;
+    const step = STEP / 2;
     deBoorState += step * deBoorStateOrder;
 
     if (deBoorState >= 1) {
@@ -238,7 +277,7 @@ function updateDeBoorState() {
 }
 
 function drawDeBoorAnimated(controlPoints) {
-    const k = settings.degreeAlgo;
+    const k = settings.degreeAlgo + 1;
 
     const n = controlPoints.length - 1;
 
@@ -251,6 +290,7 @@ function drawDeBoorAnimated(controlPoints) {
 
     // try/catch pour les valeurs extrêmes
     try {
+        //console.log('currentR', currentR, currentTime)
         drawDeBoorAt(controlPoints, k, currentR, currentTime);
     } catch (e) {
         //console.log(e)
@@ -261,15 +301,14 @@ function drawDeBoorAnimated(controlPoints) {
 }
 
 function drawDeBoorStatic(controlPoints) {
+    //const k = settings.degreeAlgo + 1;
     const k = settings.degreeAlgo + 1;
 
     const n = controlPoints.length - 1;
 
     //console.log('n = ', n, 'k', k)
 
-    const vecteurDeNoeud = [];
-    for (let i = 0; i <= n + k + 1; i++)
-        vecteurDeNoeud.push(i);
+    const vecteurDeNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet();
 
     function alphaIJ(i, j, tStar) {
         const val = (tStar - vecteurDeNoeud[i]) / (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
@@ -287,7 +326,7 @@ function drawDeBoorStatic(controlPoints) {
 
     const finalPoints = [];
 
-    const step = 0.2;
+    const step = STEP;
     for (let r = k - 1; r < n + 1; r++) {
         for (let t = vecteurDeNoeud[r]; t < vecteurDeNoeud[r + 1]; t += step) {
             const point = {
@@ -430,12 +469,14 @@ export function refreshCanvas() {
         drawControlPoints(transformedPoints);
     }
 
+    const inputData = getTransformedList(c1.data);
+
     if (settings.selectedAlgorithm == 'deboor') {
-        drawDeBoorAnimated(c1.data);
-        drawDeBoorStatic(c1.data);
+        drawDeBoorAnimated(inputData);
+        drawDeBoorStatic(inputData);
     }
     else if (settings.selectedAlgorithm == 'bspline') {
-        drawPointsBSpline(c1.data, false);
+        drawPointsBSpline(inputData);
     }
     else
         console.log("shoudln't happen")

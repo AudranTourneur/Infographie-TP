@@ -52,8 +52,8 @@ export class Settings {
 	degreeAlgo = 3;
 
 	//Vecteur noeud de notre Bspline
-	vecteurNoeudString = "[0,1,2,3,4,5]";
-	vecteurNoeud = [0, 1, 2, 3, 4, 5];
+	vecteurNoeudString = "[0,1,2,3,4,5,6,7,8,9]";
+	vecteurNoeud = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 	// Constructeur de la classe dans lequel est déclaré l'ensemble des event listeners
 	constructor(canvas, camera) {
@@ -142,29 +142,6 @@ export class Settings {
 
 		});
 
-
-		// Gestion des onglets
-		const tabs = [1, 2, 3]
-		for (const tabId of tabs) {
-			document.getElementById(`tab-${tabId}`).addEventListener('click', () => {
-
-				document.getElementById(`tab-${this.currentlySelectedTab}`).classList.toggle('tab-active')
-				this.currentlySelectedTab = tabId
-				document.getElementById(`tab-${this.currentlySelectedTab}`).classList.toggle('tab-active')
-
-				document.getElementById('title-params').innerText = 'Paramètres de la courbe ' + this.currentlySelectedTab
-
-				document.getElementById('is-curve-visible').checked = listOfControlStructures[this.currentlySelectedTab - 1].visible
-
-				updateList(this.getCurrentlySelectedCurve(listOfControlStructures));
-			})
-		}
-
-		// Toggle pour afficher ou cacher une courbe
-		document.getElementById('is-curve-visible').addEventListener('change', e => {
-			const selectedObject = listOfControlStructures[this.currentlySelectedTab - 1]
-			selectedObject.visible = e.target.checked
-		})
 
 		// Ajout d'un point
 		document.getElementById('input-add').addEventListener('click', event => {
