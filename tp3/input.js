@@ -1,4 +1,4 @@
-import { listOfControlStructures } from "./courbesBSplines.js"
+import { getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet, isCustomVecNoeudValid, listOfControlStructures } from "./courbesBSplines.js"
 import { handleClick, deleteAllPoints, updateList, addPoint, updateTransformations } from "./gui.js"
 
 /*
@@ -42,20 +42,18 @@ export class Settings {
 	rotationCenterY = 0;
 
 	// Algorithme en cours d'utilisation
-	selectedAlgorithm = 'decasteljau'
-
-	// L'animation de De Casteljau est-elle active ?
-	animationDecasteljau = true
+	selectedAlgorithm = 'deboor' // 'deboor' OU 'bspline'
+	//selectedAlgorithm = 'bspline' // 'deboor' OU 'bspline'
 
 	// Onglet actif
 	currentlySelectedTab = 1;
 
 	// Le degre de notre Bspline
-	degree_algo = 3;
+	degreeAlgo = 3;
 
 	//Vecteur noeud de notre Bspline
-	vecteur_noued_string="[0,1,2,3,4,5]";
-	vecteur_noued=[0,1,2,3,4,5];
+	vecteurNoeudString = "[0,1,2,3,4,5]";
+	vecteurNoeud = [0, 1, 2, 3, 4, 5];
 
 	// Constructeur de la classe dans lequel est déclaré l'ensemble des event listeners
 	constructor(canvas, camera) {
@@ -88,20 +86,15 @@ export class Settings {
 		})
 
 		// Sélection de l'algorithme de Bernstein
-		document.getElementById('div-bernstein').addEventListener('click', () => {
-			this.selectedAlgorithm = 'bernstein'
-			document.getElementById('radio-bernstein').checked = true
+		document.getElementById('div-bspline').addEventListener('click', () => {
+			this.selectedAlgorithm = 'bspline'
+			document.getElementById('radio-bspline').checked = true
 		})
 
 		// Sélection de l'algorithme de De Casteljau
-		document.getElementById('div-decasteljau').addEventListener('click', () => {
-			this.selectedAlgorithm = 'decasteljau'
-			document.getElementById('radio-decastleljau').checked = true
-		})
-
-		// Animation
-		document.getElementById('animation-decastleljau').addEventListener('click', event => {
-			this.animationDecasteljau = event.target.checked
+		document.getElementById('div-deboor').addEventListener('click', () => {
+			this.selectedAlgorithm = 'deboor'
+			document.getElementById('radio-deboor').checked = true
 		})
 
 		// Ajout ou modification de points par un clic sur le canvas
@@ -113,16 +106,40 @@ export class Settings {
 		document.getElementById('reset-points').addEventListener('click', () => {
 			deleteAllPoints()
 		})
-		document.getElementById('degree').addEventListener('change',(event)=>{
-			this.degree_algo=event.target.value;
+
+		function updateWarningVecNoeud() {
+			const warning = document.getElementById('vecnoeud-warning')
+			if (!isCustomVecNoeudValid()) {
+				warning.classList.remove('hidden')
+				document.getElementById('vecnoeud-replace').innerText = '[' + getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet().join(', ') + ']';
+			}
+			else {
+				warning.classList.add('hidden')
+
+			}
+		}
+
+		setTimeout(() => {
+			updateWarningVecNoeud();
+		}, 1000)
+
+		document.getElementById('degree').addEventListener('change', (event) => {
+			this.degreeAlgo = Number(event.target.value);
+			console.log('deg=', this.degreeAlgo)
+			updateWarningVecNoeud();
 		});
-		document.getElementById('vecteur-noeud').addEventListener('change',(event)=>{
+		document.getElementById('vecteur-noeud').addEventListener('change', (event) => {
 			const inputStr = event.target.value;
 			const regex = new RegExp(/^((\d+(?:\.\d+)?),?)*$/gm)
 			if (regex.test(inputStr)) {
-				this.vecteur_noued_string=event.target.value;
+				this.vecteurNoeudString = event.target.value;
 				this.convertStringToTab()
 			}
+
+
+			updateWarningVecNoeud();
+
+
 		});
 
 
@@ -170,13 +187,14 @@ export class Settings {
 		return selected
 	}
 
-	convertStringToTab(){
-		let vec=this.vecteur_noued_string.split(',');
-		let tmp=[]
-		vec.forEach(e=>{
+	convertStringToTab() {
+		let vec = this.vecteurNoeudString.split(',');
+		let tmp = []
+		vec.forEach(e => {
 			if (e != '' && Number.isFinite(Number(e)))
 				tmp.push(Number(e));
 		})
-		this.vecteur_noued=tmp;
+		this.vecteurNoeud = tmp;
 	}
+
 }

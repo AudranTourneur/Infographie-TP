@@ -47,11 +47,6 @@ const controlMaterial =
 // Liste des polynômes de Bernstein qu'on dessine dans le fichier polynomes.js
 export const bSplinePolyPoints = [];
 
-// Utilisée pour ls animations des traits de construction
-let deCasteljauAnimationState = 0;
-let deCasteljauAnimationStateOrder = true;
-
-
 // Données d'initialisation
 // Il s'agit des trois polynômes dans le sujet : c1, c2 et c3
 const c1X = 10  // Offset en X
@@ -98,17 +93,19 @@ export let listOfControlStructures = [c1, c2, c3];
 function drawPointsBSpline(controlPoints, log) {
     const step = 0.01;      //pas de t 
     //console.log(controlPoints)
-    log=true;
-    let degre = settings.degree_algo;  // Pour l'instant 3 mais c une donne de l'utilisateur
+    //let degre = settings.degreeAlgo;  // Pour l'instant 3 mais c une donne de l'utilisateur
+    let degre = 3;
     let ordre = degre + 1;
-    let vecNoeud = settings.vecteur_noued;
+    let vecNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet();
+    // let vecNoeud = [];
     let n = controlPoints.length - 1;  // length des points de controles
     //let nbMorceaux = n - ordre + 2; ai final le nbMorceau est inutile, c'est simplement une manière de voir la chose
     // Noter vecteur de noeud est uniforme peut etre que plus tard on peut le
     // ettre en entree d'utilisateur
     bSplinePolyPoints.splice(n);
-    for (let i = 0; i <= n + ordre; i++) vecNoeud.push(i);
-    
+
+    //for (let i = 0; i <= n + ordre; i++) vecNoeud.push(i);
+
     if (log) console.log(vecNoeud);
     if (log) console.log(degre);
     //if (log) console.log(controlPoints);
@@ -142,23 +139,23 @@ function drawPointsBSpline(controlPoints, log) {
         finalPoints.push({ x: sumX, y: sumY })
     }
 
-    let bSpline=[];
-    for(let i =0;i<=n;i++){
-        bSpline=[];
+    let bSpline = [];
+    for (let i = 0; i <= n; i++) {
+        bSpline = [];
         //if(log) console.log(vecNoeud[0]);
         //if(log) console.log(vecNoeud[n+ordre]);
-        for(let t_=vecNoeud[0];t_<vecNoeud[n+ordre];t_+=step){
-            bSpline.push({x:t_,y:baseBSpline(degre,t_,i)});
+        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre]; t_ += step) {
+            bSpline.push({ x: t_, y: baseBSpline(degre, t_, i) });
         }
         bSplinePolyPoints.push(bSpline);
     }
     const newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
     const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
-    const curve = new THREE.Line(polyGeom,blueMaterial );
+    const curve = new THREE.Line(polyGeom, blueMaterial);
 
     scene.add(curve)
 
-       
+
 }
 
 let deBoorState = 0; // entre 0 et 1
@@ -241,7 +238,7 @@ function updateDeBoorState() {
 }
 
 function drawDeBoorAnimated(controlPoints) {
-    const k = 4;
+    const k = settings.degreeAlgo;
 
     const n = controlPoints.length - 1;
 
@@ -438,19 +435,23 @@ export function refreshCanvas() {
 
         const transformedPoints = getTransformedList(curve.data)
         drawControlPoints(transformedPoints);
-
-
     }
 
-    //drawPointsBSpline(c1.data, false);
-    drawDeBoor(c1.data);
+    if (settings.selectedAlgorithm == 'deboor') {
+        drawDeBoorAnimated(c1.data);
+        drawDeBoor(c1.data);
+    }
+    else if (settings.selectedAlgorithm == 'bspline') {
+        drawPointsBSpline(c1.data, false);
+    }
+    else
+        console.log("shoudln't happen")
 
-    drawDeBoorAnimated(c1.data);
 }
 
 
 drawControlPoints(c1.data)
-drawPointsBSpline(c1.data, true)
+drawPointsBSpline(c1.data, false)
 
 
 function animate() {
@@ -474,3 +475,40 @@ scene.add(axisGroup);
 
 // On appelle la fonction une première fois pour initialiser
 animate();
+
+// renvoie true si le vecteur de noeud saisie par l'utilisateur est valide, false sinon
+export function isCustomVecNoeudValid() {
+    const n = c1.data.length - 1; // nombre de points de contrôles - 1
+    const k = settings.degreeAlgo; // degré choisie par l'utilisateur
+    const vecNoeudLen = settings.vecteurNoeud.length;
+
+    console.log('test', typeof n, typeof k)
+    console.log(vecNoeudLen, 'vs', n + k)
+
+    if (vecNoeudLen < n + k) {
+        return false;
+    }
+
+    for (let i = 0; i < vecNoeudLen - 1; i++) {
+        if (settings.vecteurNoeud[i + 1] < settings.vecteurNoeud[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Si le vecteur de noeud saisie par l'utilisateur est valide, celui-ci est renvoyé, 
+// autrement un vecteur de noeud uniforme conforme vis-à-vis des paramètres saisie est renvoyé par défaut
+export function getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet() {
+    const n = c1.data.length - 1; // nombre de points de contrôles - 1
+    const k = settings.degreeAlgo; // degré choisie par l'utilisateur
+
+    if (isCustomVecNoeudValid()) {
+        return settings.vecteurNoeud;
+    }
+    else {
+        const defaultVecNoeudUniform = Array.from(Array(n + k + 1).keys()); // [0, 1, ..., n + k - 1, n + k]
+        return defaultVecNoeudUniform;
+    }
+}
