@@ -117,8 +117,6 @@ function drawPointsBSpline(controlPoints) {
             ((vecNoeud[i + m + 1] - t) / (vecNoeud[i + m + 1] - vecNoeud[i + 1])) *
             baseBSpline(m - 1, t, i + 1);
     }
-    //if (log) console.log("borne inférieure de t :" + vecNoeud[ordre - 1]);
-    //if (log) console.log("borne supérieur de t :", vecNoeud[n + 1]);
     const finalPoints = []  //liste des points finaux de notre courbe de Bspline
     for (let t = vecNoeud[ordre - 1]; t < vecNoeud[n + 1]; t += step) {
         let sumX = 0;
@@ -134,7 +132,7 @@ function drawPointsBSpline(controlPoints) {
     let bSpline = [];
     for (let i = 0; i <= n; i++) {
         bSpline = [];
-        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre-1]; t_ += step) {
+        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre - 1]; t_ += step) {
             bSpline.push({ x: t_, y: baseBSpline(degre, t_, i) });
         }
         bSplinePolyPoints.push(bSpline);
@@ -152,16 +150,11 @@ let deBoorState = 0; // entre 0 et 1
 let deBoorStateOrder = 1; // 1 croissant | -1 décroissant
 
 function drawDeBoorAt(controlPoints, k, r, t) {
-    // console.log('k = ', k)
     const n = controlPoints.length - 1;
-
-    //console.log('n', n, 'k', k, 'r', r, 't', t)
 
     const vecteurDeNoeud = [];
     for (let i = 0; i <= n + k; i++)
         vecteurDeNoeud.push(i);
-
-    console.log('ici', JSON.stringify(vecteurDeNoeud))
 
     function alphaIJ(i, j, tStar) {
         const val = (tStar - vecteurDeNoeud[i]) / (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
@@ -210,14 +203,11 @@ function drawDeBoorAt(controlPoints, k, r, t) {
         }
     }
 
-    console.log('jtCP', jToConstructionPoints)
-
     let jIndex = 0;
     for (const currentConstructionPoints of jToConstructionPoints) {
 
         if (jIndex == jToConstructionPoints.length - 1) {
             const finalPoint = currentConstructionPoints[0];
-            console.log('affichage point final', finalPoint)
             const geometry = new THREE.SphereGeometry(.2, 32, 16);
             const sphere = new THREE.Mesh(geometry, redMaterial);
             sphere.position.x = finalPoint.x
@@ -225,8 +215,6 @@ function drawDeBoorAt(controlPoints, k, r, t) {
             scene.add(sphere)
         }
         else {
-            console.log('creatings points for j = ', jIndex)
-
             const newPoints = currentConstructionPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
 
             const polyGeomConstruction = new THREE.BufferGeometry().setFromPoints(newPoints);
@@ -235,33 +223,10 @@ function drawDeBoorAt(controlPoints, k, r, t) {
         }
         jIndex++;
     }
-
-    //    for (let j = 0; j < k; j++) {
-    //        for (let i = r; i > r - k - 1 - j; i--) {
-    //            console.log('j=', j, 'i=', i)
-    //        }
-    //    }
-
-
-    //console.log(constructionPointsCoords)
-
-    // console.log('CPC', constructionPointsCoords)
-    // // 
-    // for (const key of Object.keys(constructionPointsCoords.x)) {
-    //     // 
-    //     const constructionPoints = [];
-    //     for (let i = 0; i < constructionPointsCoords.x[key].length; i++) {
-    //         constructionPoints.push(new THREE.Vector3(constructionPointsCoords.x[key][i], constructionPointsCoords.y[key][i], 0));
-    //     }
-    //     // 
-    //     const polyGeomConstruction = new THREE.BufferGeometry().setFromPoints(constructionPoints);
-    //     const curveConstruction = new THREE.Line(polyGeomConstruction, redMaterial);
-    //     scene.add(curveConstruction);
-    //     console.log('oui')
-    // }
 }
 
 
+// Met à jour l'état de l'animation des pas de construction de De Boor (sens croissant puis sens décroissant)
 function updateDeBoorState() {
     const step = STEP / 2;
     deBoorState += step * deBoorStateOrder;
@@ -288,10 +253,8 @@ function drawDeBoorAnimated(controlPoints) {
 
     // try/catch pour les valeurs extrêmes
     try {
-        //console.log('currentR', currentR, currentTime)
         drawDeBoorAt(controlPoints, k, currentR, currentTime);
     } catch (e) {
-        //console.log(e)
         console.warn("Error at :", currentR, currentTime)
     }
 
@@ -303,8 +266,6 @@ function drawDeBoorStatic(controlPoints) {
     const k = settings.degreeAlgo + 1;
 
     const n = controlPoints.length - 1;
-
-    //console.log('n = ', n, 'k', k)
 
     const vecteurDeNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet();
 
@@ -403,7 +364,7 @@ export function transformPoint(point) {
 // Applique la transforme inverse à un point (on l'utilise pour pouvoir ajouter
 // un point lorsque l'utilisateur clique sur le canvas et qu'une transformée est
 // déjà en cours d'application)
-//  Il s'agit de l'exact inverse de la fonction transformPoint(point)
+// Il s'agit de l'exact inverse de la fonction transformPoint(point)
 export function inverseTransformPoint(point) {
     const s = settings;
     const theta = s.rotationFactorDeg * Math.PI / 180;
@@ -476,8 +437,6 @@ export function refreshCanvas() {
     else if (settings.selectedAlgorithm == 'bspline') {
         drawPointsBSpline(inputData);
     }
-    else
-        console.log("shoudln't happen")
 
 }
 
@@ -513,9 +472,6 @@ export function isCustomVecNoeudValid() {
     const n = c1.data.length - 1; // nombre de points de contrôles - 1
     const k = settings.degreeAlgo; // degré choisie par l'utilisateur
     const vecNoeudLen = settings.vecteurNoeud.length;
-
-    console.log('test', typeof n, typeof k)
-    console.log(vecNoeudLen, 'vs', n + k)
 
     if (vecNoeudLen < n + k) {
         return false;

@@ -2,7 +2,7 @@ import { bSplinePolyPoints } from "./courbesBSplines.js";
 import { disposeNode } from "./utils.js";
 
 /*
-  Ce fichier contient la logique pour l'affichage des polynômes de Bernstein en bas à gauche de l'écran
+  Ce fichier contient la logique pour l'affichage des polynômes de BSpline en bas à gauche de l'écran
 */
 
 //On recupère les données pour initialiser un deuxieme canvas pour afficher les polynômes de Bernstein
@@ -26,41 +26,38 @@ scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 
-let maxX=0;
-//Dessine les polynômes de Bernstein
-function drawbernsteinPoly() {
+let maxX = 0;
+//Dessine les polynômes de BSpline
+function drawbernsteinBSpline() {
 	bSplinePolyPoints.forEach(elt => {
 		let bernsteinPolyPoints = []
 		elt.forEach(e => {
 			// On transforme notre tableau d'objets JS {x, y} en objets three.js
 			bernsteinPolyPoints.push(new THREE.Vector3(e.x, e.y, 0))
-			maxX=Math.max(maxX,e.x);
+			maxX = Math.max(maxX, e.x);
 		})
-		const bernsteinGeometry = new THREE.BufferGeometry().setFromPoints(bernsteinPolyPoints);
+		const filteredPoints = bernsteinPolyPoints.filter(e => !Number.isNaN(e.x) && !Number.isNaN(e.y))
+		const bernsteinGeometry = new THREE.BufferGeometry().setFromPoints(filteredPoints);
 		const bernsteinCurve = new THREE.Line(bernsteinGeometry, redMaterial);
 		scene.add(bernsteinCurve);
 	})
 }
 
-//Nos fonctions de base vont de 0 à valeur final du vecteur ed noeud donc il faut décaler notre caméra pour montrer correctement tout
-function resetCamera(){
-	let lookAt=(maxX/2)
+// Nos fonctions de base vont de 0 à valeur final du vecteur de noeud donc il faut décaler notre caméra pour montrer correctement tout
+function resetCamera() {
+	let lookAt = (maxX / 2)
 	camera.position.x = lookAt;
-	camera.position.z=lookAt;
-	camera.lookAt(lookAt,0.5,0);
+	camera.position.z = lookAt;
+	camera.lookAt(lookAt, 0.5, 0);
 }
-let compteur=0;
+
 // Mise à jour du canvas
 function refreshCanvas() {
-	//console.log(bSplinePolyPoints);
 	for (const child of scene.children) {
 		disposeNode(child);
 		scene.remove(child);
 	}
-	compteur++;
-	
-	console.log(bSplinePolyPoints);
-	drawbernsteinPoly();
+	drawbernsteinBSpline();
 }
 
 // On met à jour notre canvas toutes les secondes
