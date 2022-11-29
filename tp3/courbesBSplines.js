@@ -92,6 +92,7 @@ const STEP = 0.01;
 // Par défaut, elle est construite avec c1, c2 et c3
 export let listOfControlStructures = [c1];
 
+// Dessine une courbe avec les bases de BSpline
 function drawPointsBSpline(controlPoints) {
     const step = STEP;      //pas de t 
     let degre = settings.degreeAlgo;
@@ -100,8 +101,6 @@ function drawPointsBSpline(controlPoints) {
     let n = controlPoints.length - 1;  // length des points de controles
 
     bSplinePolyPoints.splice(n);
-
-    //for (let i = 0; i <= n + ordre; i++) vecNoeud.push(i);
 
     // Renvoie la base N, indice i, exposant m pour un t donné
     // etape = m
@@ -121,7 +120,7 @@ function drawPointsBSpline(controlPoints) {
     for (let t = vecNoeud[ordre - 1]; t < vecNoeud[n + 1]; t += step) {
         let sumX = 0;
         let sumY = 0;
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) {  // construction des morceaux
             let tmp = baseBSpline(degre, t, i);
             sumX += controlPoints[i].x * tmp;
             sumY += controlPoints[i].y * tmp;
@@ -132,23 +131,25 @@ function drawPointsBSpline(controlPoints) {
     let bSpline = [];
     for (let i = 0; i <= n; i++) {
         bSpline = [];
-        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre - 1]; t_ += step) {
+        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre - 1]; t_ += step) { // itération sur le pas t_
             bSpline.push({ x: t_, y: baseBSpline(degre, t_, i) });
         }
         bSplinePolyPoints.push(bSpline);
     }
+
+    // points finaux à afficher
     const newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
     const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
     const curve = new THREE.Line(polyGeom, blueMaterial);
 
     scene.add(curve)
-
-
 }
 
 let deBoorState = 0; // entre 0 et 1
 let deBoorStateOrder = 1; // 1 croissant | -1 décroissant
 
+
+// Dessine les traits de construction de De Boor à un instant t donné
 function drawDeBoorAt(controlPoints, k, r, t) {
     const n = controlPoints.length - 1;
 
@@ -156,14 +157,13 @@ function drawDeBoorAt(controlPoints, k, r, t) {
     for (let i = 0; i <= n + k; i++)
         vecteurDeNoeud.push(i);
 
+    // alpha indicde i, expose j, pour un t donné (récursif)
     function alphaIJ(i, j, tStar) {
         const val = (tStar - vecteurDeNoeud[i]) / (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
         return val
     }
 
-
-    const constructionPointsCoords = { x: {}, y: {} };
-
+    // Point p d'indice i, d'exposant j, pour un t donné (récursif)
     function pIJ(i, j, coords, tStar) {
         let valToReturn = 0;
         if (j == 0)
@@ -171,27 +171,14 @@ function drawDeBoorAt(controlPoints, k, r, t) {
         else
             valToReturn = (1 - alphaIJ(i, j, tStar)) * pIJ(i - 1, j - 1, coords, tStar) + alphaIJ(i, j, tStar) * pIJ(i, j - 1, coords, tStar);
 
-        //constructionPointsCoords[coords][j].push(valToReturn)
-        addToArrayOrCreate(constructionPointsCoords[coords], j, valToReturn);
-
         return valToReturn;
     }
 
-    const pointFinal = {
-        x: pIJ(r, k - 1, 'x', t),
-        y: pIJ(r, k - 1, 'y', t),
-    };
-
-
-
+    // tableau de tableaux pour contenir les traits de construction associés à chaque j
     let jToConstructionPoints = [];
-
 
     for (let j = 0; j < k; j++) {
         const debutI = r - k + 1 + j
-        if (debutI < 0) {
-            console.warn('wtf négatif', debutI, 'pour', 'r=', r, 'k=', k)
-        }
 
         jToConstructionPoints[j] = [];
 
@@ -199,14 +186,14 @@ function drawDeBoorAt(controlPoints, k, r, t) {
             const constructionPoint = { x: pIJ(i, j, 'x', t), y: pIJ(i, j, 'y', t) }
 
             jToConstructionPoints[j].push(constructionPoint);
-
         }
     }
 
+    // affichage de tous les traits de construction successifs
     let jIndex = 0;
     for (const currentConstructionPoints of jToConstructionPoints) {
 
-        if (jIndex == jToConstructionPoints.length - 1) {
+        if (jIndex == jToConstructionPoints.length - 1) { // point final
             const finalPoint = currentConstructionPoints[0];
             const geometry = new THREE.SphereGeometry(.2, 32, 16);
             const sphere = new THREE.Mesh(geometry, redMaterial);
@@ -214,7 +201,7 @@ function drawDeBoorAt(controlPoints, k, r, t) {
             sphere.position.y = finalPoint.y
             scene.add(sphere)
         }
-        else {
+        else { // étapes de construction intermédiaires
             const newPoints = currentConstructionPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
 
             const polyGeomConstruction = new THREE.BufferGeometry().setFromPoints(newPoints);
@@ -239,6 +226,7 @@ function updateDeBoorState() {
     }
 }
 
+// Gère l'animation des traits de construction de la courbe de De Boor
 function drawDeBoorAnimated(controlPoints) {
     const k = settings.degreeAlgo + 1;
 
@@ -251,18 +239,15 @@ function drawDeBoorAnimated(controlPoints) {
     const currentTime = minimum + deBoorState * length;
     const currentR = Math.floor(currentTime);
 
-    // try/catch pour les valeurs extrêmes
     try {
         drawDeBoorAt(controlPoints, k, currentR, currentTime);
-    } catch (e) {
-        console.warn("Error at :", currentR, currentTime)
-    }
+    } catch (e) { }
 
     updateDeBoorState();
 }
 
+// Dessine la courbe finale selon l'algorithme de De Boor en entier (idem que précedemment)
 function drawDeBoorStatic(controlPoints) {
-    //const k = settings.degreeAlgo + 1;
     const k = settings.degreeAlgo + 1;
 
     const n = controlPoints.length - 1;
@@ -314,8 +299,6 @@ function drawControlPoints(controlPoints) {
     const controlPolygon = new THREE.Line(polyGeom, controlMaterial);
     scene.add(controlPolygon)
 }
-
-
 
 // Applique toutes les transformés, translation, hométhétie et rotation pour un
 // point {x, y} donné
