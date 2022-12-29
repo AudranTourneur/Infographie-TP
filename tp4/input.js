@@ -144,11 +144,18 @@ export class Settings {
 
 		document.getElementById('bouton-sauvegarde').addEventListener('click',()=>{
 			let tmp=listOfControlStructures.map(e=>{return e});
-			delete tmp.visible
-			tmp.forEach(e=>{
-				delete e.id;
-			})
-			console.log('oui',tmp)
+			console.log('TMP=',tmp)
+			const curve = tmp[0]
+			console.log('curve',curve)
+			const points = tmp[0].data
+			const pointsWithoutId = points.map(e => ({x: e.x, y: e.y}))
+			const data = JSON.stringify(pointsWithoutId)
+			console.log('data=',data)
+
+			const textarea = document.getElementById('textarea-sauvegarde').value = data
+			textarea.select()	
+			document.execCommand('Copy')
+
 			
 			const c1data = listOfControlStructures[0].data;
 			//console.log('oui', c1data)
