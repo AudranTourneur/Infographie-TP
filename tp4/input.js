@@ -1,5 +1,5 @@
 import { getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet, isCustomVecNoeudValid, listOfControlStructures } from "./juniaBSplines2D.js"
-import { handleClick, deleteAllPoints, updateList, addPoint, updateTransformations } from "./gui.js"
+import { handleClick, deleteAllPoints, updateList, addPoint, updateTransformations,afficherPointsConsole } from "./gui.js"
 
 /*
   Ce fichier contient l'ensemble des fonctions relatives à les récupération des paramètres saisies par l'utilisateur dans l'interface à gauche de l'écran.
@@ -142,6 +142,23 @@ export class Settings {
 
 		});
 
+		document.getElementById('bouton-sauvegarde').addEventListener('click',()=>{
+			let tmp=listOfControlStructures.map(e=>{return e});
+			delete tmp.visible
+			tmp.forEach(e=>{
+				delete e.id;
+			})
+			console.log('oui',tmp)
+			
+			const c1data = listOfControlStructures[0].data;
+			//console.log('oui', c1data)
+			let result=tmp.map(e=>{
+				return {x:e.x,y:e.y}
+			})
+			//	console.log( JSON.stringify(tmp));
+			//console.log('final', result);
+			}
+		)
 
 		// Ajout d'un point
 		document.getElementById('input-add').addEventListener('click', event => {

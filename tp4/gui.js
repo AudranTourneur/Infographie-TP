@@ -1,3 +1,4 @@
+
 import { listOfControlStructures, transformPoint, refreshCanvas, inverseTransformPoint } from "./juniaBSplines2D.js"
 import { Settings } from "./input.js"
 import { uuid, round2 } from './utils.js'
@@ -7,7 +8,14 @@ import { clickEventToWorldCoords } from "./utils.js"
   Ce fichier contient l'ensemble des fonctions relatives à la mise à jour de l'interface des paramètres à gauche de l'écran.
   Il s'agit essentiellement de manipulation du DOM (Document Object Model).
 */
-
+export function afficherPointsConsole(){
+  document.getElementById("bouton-sauvegarde").addEventListener('click',()=>{
+    let curve=list.data;
+    for(let i of curve){
+      console.log(i);
+    }
+  })
+}
 
 // Mise à jour de la liste des points
 export function updateList(list) {

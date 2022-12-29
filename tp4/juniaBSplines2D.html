@@ -69,7 +69,11 @@
 
       <!--Interface pour ajouter un point à notre structure de contrôle-->
       <div class="flex flex-col w-full border-opacity-50 mt-4">
+        <div id="div-bouton-sauvegarde">
+          <button class="btn btn-info"id="bouton-sauvegarde">Sauvegarder</button>
+        </div>
         <div class="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center h-32">
+          
           <div class="flex flex-col h-full justify-center">
             <div class="text-lg">Ajouter un point</div>
             <div class="flex flex-row">
@@ -204,20 +208,8 @@
       </button>
     </div>
 
-    <div class="divider"></div>
-    <!--La partie d'affichage des polynômes des bases BSplines -->
-    <div>
-      <div class="flex justify-center items-center">
-        <div class="text-center">
-          <div class="text-center">
-            Courbe B-splines
-            <br />
-            (nécessite d'être en mode "B-splines")
-          </div>
-          <canvas id="canvas-polynomes"></canvas>
-        </div>
-      </div>
-    </div>
+    
+    
   </div>
 
   <canvas id="canvas"></canvas>
@@ -228,7 +220,7 @@
   <script type="module" src="juniaBSplines2D.js"></script>
   <script type="module" src="gui.js"></script>
   <script type="module" src="input.js"></script>
-  <script type="module" src="polynomes.js"></script>
+  
 </body>
 
 </html>

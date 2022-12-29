@@ -44,8 +44,8 @@ const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
 const controlMaterial =
     new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
 
-// Liste des polynômes de Bernstein qu'on dessine dans le fichier polynomes.js
-export const bSplinePolyPoints = [];
+
+
 
 // Données d'initialisation
 // Il s'agit des trois polynômes dans le sujet : c1, c2 et c3
@@ -100,7 +100,7 @@ function drawPointsBSpline(controlPoints) {
     let vecNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet();
     let n = controlPoints.length - 1;  // length des points de controles
 
-    bSplinePolyPoints.splice(n);
+    
 
     // Renvoie la base N, indice i, exposant m pour un t donné
     // etape = m
@@ -126,15 +126,6 @@ function drawPointsBSpline(controlPoints) {
             sumY += controlPoints[i].y * tmp;
         }
         finalPoints.push({ x: sumX, y: sumY })
-    }
-
-    let bSpline = [];
-    for (let i = 0; i <= n; i++) {
-        bSpline = [];
-        for (let t_ = vecNoeud[0]; t_ < vecNoeud[n + ordre - 1]; t_ += step) { // itération sur le pas t_
-            bSpline.push({ x: t_, y: baseBSpline(degre, t_, i) });
-        }
-        bSplinePolyPoints.push(bSpline);
     }
 
     // points finaux à afficher
