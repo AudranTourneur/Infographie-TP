@@ -1,0 +1,19 @@
+{
+  "name": "scripting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash-es": "^4.17.21",
+    "svg-parser": "^2.0.4",
+    "svg-path-parser": "^1.1.0",
+    "three": "^0.148.0"
+  }
+}

@@ -108,6 +108,7 @@ export class Settings {
 		})
 
 		function updateWarningVecNoeud() {
+			return console.log('removed')
 			const warning = document.getElementById('vecnoeud-warning')
 			if (!isCustomVecNoeudValid()) {
 				warning.classList.remove('hidden')

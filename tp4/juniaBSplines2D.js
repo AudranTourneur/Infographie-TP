@@ -1,7 +1,9 @@
-import {TOUTES_LES_COURBES} from './donnnes/data.js';
-import {updateList} from './gui.js'
-import {Settings} from './input.js'
-import {addToArrayOrCreate, choose, disposeNode, drawAxisGraduation} from './utils.js'
+import { drawBernstein } from './courbesBezier.js';
+import { TOUTES_LES_COURBES } from './donnnes/data.js';
+import { COURBES_JUNIA } from './donnnes/junia.js';
+import { updateList } from './gui.js'
+import { Settings } from './input.js'
+import { addToArrayOrCreate, choose, disposeNode, drawAxisGraduation } from './utils.js'
 
 /*
   Ce fichier contient la majorité de la logique mathématique pour les courbes de
@@ -10,7 +12,7 @@ import {addToArrayOrCreate, choose, disposeNode, drawAxisGraduation} from './uti
 
 // Instanciation du renderer (moteur de rendu)
 const renderer =
-    new THREE.WebGLRenderer({canvas: document.getElementById('canvas')});
+  new THREE.WebGLRenderer({ canvas: document.getElementById('canvas') });
 
 
 // Création d'un premier canvas principal
@@ -24,15 +26,13 @@ renderer.setSize(desiredWidth, desiredHeight);
 
 // Création de la caméra
 const camera =
-    new THREE.PerspectiveCamera(45, desiredWidth / desiredHeight, 0.5, 1000);
+  new THREE.PerspectiveCamera(45, desiredWidth / desiredHeight, 0.5, 1000);
 camera.position.z = 70;
 
 // Instanciation de la scène
 const scene = new THREE.Scene();
 
 
-// On met la couleur du background à vert (valeurs RGB normalisées entre 0 et 1,
-// la composante verte est à 1, les autres à 0)
 scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
 // Objet qui contient les paramètres spécifiés par l'utilisateur
@@ -40,10 +40,10 @@ const settings = new Settings(canvas, camera);
 
 // Définition des matériaux qui seront utilisés plus tard
 const blueMaterial =
-    new THREE.LineBasicMaterial({color: 0x0000ff, linewidth: 3});
-const redMaterial = new THREE.LineBasicMaterial({color: 0xff0000});
+  new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3 });
+const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
 const controlMaterial =
-    new THREE.LineBasicMaterial({color: 0x00ff00, linewidth: 2})
+  new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
 
 
 
@@ -64,12 +64,15 @@ const c1 = {
 // Liste qui contient les structures de contrôle placées par l'utilisateur
 // Par défaut, elle est construite avec c1, c2 et c3
 //export let listOfControlStructures = [c1];
- export let listOfControlStructures = [{data: [], visible: true}];
+
+const allCurves = COURBES_JUNIA
+
+export let listOfControlStructures = [{ data: [], visible: true }];
 
 
 
 // Dessine une courbe avec les bases de BSpline
-function drawPointsBSpline(controlPoints) {
+function drawPointsBSpline(scene, controlPoints) {
   const step = STEP;  // pas de t
   let degre = settings.degreeAlgo;
   let ordre = degre + 1;
@@ -88,12 +91,12 @@ function drawPointsBSpline(controlPoints) {
         return 0;
     }
     return ((t - vecNoeud[i]) / (vecNoeud[i + m] - vecNoeud[i])) *
-        baseBSpline(m - 1, t, i) +
-        ((vecNoeud[i + m + 1] - t) / (vecNoeud[i + m + 1] - vecNoeud[i + 1])) *
-        baseBSpline(m - 1, t, i + 1);
+      baseBSpline(m - 1, t, i) +
+      ((vecNoeud[i + m + 1] - t) / (vecNoeud[i + m + 1] - vecNoeud[i + 1])) *
+      baseBSpline(m - 1, t, i + 1);
   }
   const finalPoints = []  // liste des points finaux de notre courbe de Bspline
-      for (let t = vecNoeud[ordre - 1]; t < vecNoeud[n + 1]; t += step) {
+  for (let t = vecNoeud[ordre - 1]; t < vecNoeud[n + 1]; t += step) {
     let sumX = 0;
     let sumY = 0;
     for (let i = 0; i < n; i++) {  // construction des morceaux
@@ -101,7 +104,7 @@ function drawPointsBSpline(controlPoints) {
       sumX += controlPoints[i].x * tmp;
       sumY += controlPoints[i].y * tmp;
     }
-    finalPoints.push({x: sumX, y: sumY})
+    finalPoints.push({ x: sumX, y: sumY })
   }
 
   // points finaux à afficher
@@ -126,7 +129,7 @@ function drawDeBoorAt(controlPoints, k, r, t) {
   // alpha indicde i, expose j, pour un t donné (récursif)
   function alphaIJ(i, j, tStar) {
     const val = (tStar - vecteurDeNoeud[i]) /
-        (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
+      (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
     return val
   }
 
@@ -137,8 +140,8 @@ function drawDeBoorAt(controlPoints, k, r, t) {
       valToReturn = controlPoints[i][coords];
     else
       valToReturn =
-          (1 - alphaIJ(i, j, tStar)) * pIJ(i - 1, j - 1, coords, tStar) +
-          alphaIJ(i, j, tStar) * pIJ(i, j - 1, coords, tStar);
+        (1 - alphaIJ(i, j, tStar)) * pIJ(i - 1, j - 1, coords, tStar) +
+        alphaIJ(i, j, tStar) * pIJ(i, j - 1, coords, tStar);
 
     return valToReturn;
   }
@@ -153,10 +156,10 @@ function drawDeBoorAt(controlPoints, k, r, t) {
     jToConstructionPoints[j] = [];
 
     for (let i = debutI; i <= r; i++) {  // [r-k-1-j]
-      const constructionPoint = {x: pIJ(i, j, 'x', t), y: pIJ(i, j, 'y', t)}
+      const constructionPoint = { x: pIJ(i, j, 'x', t), y: pIJ(i, j, 'y', t) }
 
-                                jToConstructionPoints[j]
-                                    .push(constructionPoint);
+      jToConstructionPoints[j]
+        .push(constructionPoint);
     }
   }
 
@@ -172,12 +175,12 @@ function drawDeBoorAt(controlPoints, k, r, t) {
       scene.add(sphere)
     } else {  // étapes de construction intermédiaires
       const newPoints =
-          currentConstructionPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+        currentConstructionPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
 
       const polyGeomConstruction =
-          new THREE.BufferGeometry().setFromPoints(newPoints);
+        new THREE.BufferGeometry().setFromPoints(newPoints);
       const curveConstruction =
-          new THREE.Line(polyGeomConstruction, redMaterial);
+        new THREE.Line(polyGeomConstruction, redMaterial);
       scene.add(curveConstruction);
     }
     jIndex++;
@@ -222,17 +225,19 @@ function drawDeBoorAnimated(controlPoints) {
 // Dessine la courbe finale selon l'algorithme de De Boor en entier (idem que
 // précedemment)
 function drawDeBoorStatic(controlPoints) {
-  const k = settings.degreeAlgo + 1;
-  //const k = 3;
+  //const k = settings.degreeAlgo + 1;
+  const k = 3;
 
   const n = controlPoints.length - 1;
 
-  const vecteurDeNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet(controlPoints);
-  
+  //const vecteurDeNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet(controlPoints);
+  const vecteurDeNoeud = getUniformVecNoeud(controlPoints)
+  console.log('vec', vecteurDeNoeud)
+
 
   function alphaIJ(i, j, tStar) {
     const val = (tStar - vecteurDeNoeud[i]) /
-        (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
+      (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
     return val
   }
 
@@ -240,7 +245,7 @@ function drawDeBoorStatic(controlPoints) {
     if (j == 0) return controlPoints[i][coords];
 
     const val = (1 - alphaIJ(i, j, tStar)) * pIJ(i - 1, j - 1, coords, tStar) +
-        alphaIJ(i, j, tStar) * pIJ(i, j - 1, coords, tStar);
+      alphaIJ(i, j, tStar) * pIJ(i, j - 1, coords, tStar);
 
     return val;
   }
@@ -295,7 +300,7 @@ export function transformPoint(point) {
   // Hométhétie
   const scaled = {
     x: translated.x * s.scaleFactor,
-    y: translated.y* s.scaleFactor
+    y: translated.y * s.scaleFactor
   }
 
   // Translation vers une nouvelle origine si le centre de rotation n'est pas
@@ -309,9 +314,9 @@ export function transformPoint(point) {
   // https://en.wikipedia.org/wiki/Rotation_matrix
   const rotated = {
     x: (rotationNormalized.x * Math.cos(theta) -
-        rotationNormalized.y * Math.sin(theta)),
+      rotationNormalized.y * Math.sin(theta)),
     y: (rotationNormalized.x * Math.sin(theta) +
-        rotationNormalized.y * Math.cos(theta)),
+      rotationNormalized.y * Math.cos(theta)),
   }
 
   // On ramène le point après avoir effectué une rotation selon une nouvelle
@@ -363,7 +368,16 @@ export function inverseTransformPoint(point) {
 
 // Renvoie la liste transformée d'une liste de coordonnés
 function getTransformedList(original) {
-  return original.map(e => {return transformPoint(e)})
+  return original.map(e => { return transformPoint(e) })
+}
+
+// Lie les points passés en paramètre par des traits
+function drawSimpleCurve(points) {
+  const newPoints = points.map(e => new THREE.Vector3(e.x, e.y, 0));
+  const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
+  const curve = new THREE.Line(polyGeom, blueMaterial);
+
+  scene.add(curve);
 }
 
 // Mise à jour notre canvas
@@ -382,25 +396,30 @@ export function refreshCanvas() {
     scene.remove(child);
   }
 
+  /*
   // On dessine toutes les courbes avec la méthode choisie
   for (const curve of listOfControlStructures) {
-    // if (!curve.visible) {
-    //     continue;
-    // }
-
-    //console.log('draw', curve)
-
     const transformedPoints = getTransformedList(curve.data)
-    //drawControlPoints(transformedPoints);
-
-    //const inputData = getTransformedList(curve.data);
-    //const inputData = curve.data;
 
     if (settings.selectedAlgorithm == 'deboor') {
       // drawDeBoorAnimated(inputData);
       drawDeBoorStatic(transformedPoints);
     } else if (settings.selectedAlgorithm == 'bspline') {
       drawPointsBSpline(transformedPoints);
+    }
+  }
+  */
+
+  for (const curve of allCurves) {
+    for (const curvePart of curve) {
+      if (curvePart.type === 'line') {
+        drawSimpleCurve(curvePart.points)
+      }
+      else if (curvePart.type === 'bezier') {
+        //console.log('yo')
+        //drawDeBoorStatic(curvePart.points)
+        drawBernstein(scene, curvePart.points)
+      }
     }
   }
 }
@@ -456,6 +475,14 @@ export function isCustomVecNoeudValid(controlPoints) {
   return true;
 }
 
+function getUniformVecNoeud(controlPoints) {
+  const n = controlPoints.length - 1;  // nombre de points de contrôles - 1
+  const k = settings.degreeAlgo;    // deg
+  const defaultVecNoeudUniform =
+    Array.from(Array(n + k + 1).keys());  // [0, 1, ..., n + k - 1, n + k]
+  return defaultVecNoeudUniform;
+}
+
 // Si le vecteur de noeud saisie par l'utilisateur est valide, celui-ci est
 // renvoyé, autrement un vecteur de noeud uniforme conforme vis-à-vis des
 // paramètres saisie est renvoyé par défaut
@@ -468,7 +495,7 @@ export function getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet(controlPoints)
     return settings.vecteurNoeud;
   } else {
     const defaultVecNoeudUniform =
-        Array.from(Array(n + k + 1).keys());  // [0, 1, ..., n + k - 1, n + k]
+      Array.from(Array(n + k + 1).keys());  // [0, 1, ..., n + k - 1, n + k]
     return defaultVecNoeudUniform;
   }
 }
@@ -478,7 +505,7 @@ export function getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet(controlPoints)
 
 function loadCurveFromListOfPoints(courbe) {
   listOfControlStructures.push({
-    data: courbe.points.map(p => ({x: p.x + courbe.offset.x, y: p.y + courbe.offset.y})),
+    data: courbe.points.map(p => ({ x: p.x + courbe.offset.x, y: p.y + courbe.offset.y })),
     visible: true,
   })
 }
