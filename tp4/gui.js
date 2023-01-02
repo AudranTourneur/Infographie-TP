@@ -1,5 +1,5 @@
 
-import { listOfControlStructures, transformPoint, refreshCanvas, inverseTransformPoint } from "./juniaBSplines2D.js"
+import { listOfControlStructures, transformPoint, refreshCanvas, inverseTransformPoint } from "./junia2D.js"
 import { Settings } from "./input.js"
 import { uuid, round2 } from './utils.js'
 import { clickEventToWorldCoords } from "./utils.js"

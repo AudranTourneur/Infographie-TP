@@ -42,7 +42,7 @@ const settings = new Settings(canvas, camera);
 const blueMaterial =
   new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3 });
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-const controlMaterial =
+const greenMaterial =
   new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
 
 
@@ -279,7 +279,7 @@ function drawDeBoorStatic(controlPoints) {
 function drawControlPoints(controlPoints) {
   const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
   const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
-  const controlPolygon = new THREE.Line(polyGeom, controlMaterial);
+  const controlPolygon = new THREE.Line(polyGeom, greenMaterial);
   scene.add(controlPolygon)
 }
 
@@ -380,6 +380,18 @@ function drawSimpleCurve(points) {
   scene.add(curve);
 }
 
+function drawSpheres(points, material) {
+  for (const p of points) {
+    const geometry = new THREE.SphereGeometry(.3, 32, 16);
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position.set(p.x, p.y, p.z)
+    scene.add(sphere);
+  }
+}
+
+
+let counter = 0
+
 // Mise à jour notre canvas
 export function refreshCanvas() {
   const s = settings;
@@ -396,22 +408,10 @@ export function refreshCanvas() {
     scene.remove(child);
   }
 
-  /*
-  // On dessine toutes les courbes avec la méthode choisie
-  for (const curve of listOfControlStructures) {
-    const transformedPoints = getTransformedList(curve.data)
-
-    if (settings.selectedAlgorithm == 'deboor') {
-      // drawDeBoorAnimated(inputData);
-      drawDeBoorStatic(transformedPoints);
-    } else if (settings.selectedAlgorithm == 'bspline') {
-      drawPointsBSpline(transformedPoints);
-    }
-  }
-  */
-
   for (const curve of allCurves) {
     for (const curvePart of curve) {
+    //if (counter % 40 < 20)
+      drawSpheres(curvePart.points, curvePart.type === 'line' ? greenMaterial : redMaterial)
       if (curvePart.type === 'line') {
         drawSimpleCurve(curvePart.points)
       }
@@ -422,6 +422,8 @@ export function refreshCanvas() {
       }
     }
   }
+
+  counter++
 }
 
 

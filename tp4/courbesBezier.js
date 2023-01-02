@@ -27,8 +27,7 @@ function bernstein(n, i, t) {
 }
 
 // On dessine la courbe de Bernstein
-export function drawBernstein(scene, points) {
-    const step = 0.1
+export function drawBernstein(scene, points, step = 0.1) {
     const n = points.length - 1;
 
     const bezierPoints = []
@@ -56,6 +55,36 @@ export function drawBernstein(scene, points) {
     const curve = new THREE.Line(polyGeom, blueMaterial);
 
     scene.add(curve)
+}
+
+// On dessine la courbe de Bernstein
+export function getBernsteinPoints(scene, controlPoints, step = 0.1) {
+    const n = controlPoints.length - 1;
+
+    const bezierPoints = []
+    // L'algorithme est appliqué pour une échantillonage de t contenant 1/step valeurs
+    for (let t = 0; t < 1; t += step) {
+        let sumX = 0;
+        let sumY = 0;
+
+        // Application des bases de Bernstein de 0 à n
+        for (let i = 0; i <= n; i++) {
+            sumX += controlPoints[i].x * bernstein(n, i, t)
+            sumY += controlPoints[i].y * bernstein(n, i, t)
+        }
+
+        // On récolte les points ainsi générés dans un tableau
+        bezierPoints.push({
+            x: sumX,
+            y: sumY,
+        })
+    }
+
+    // Objets three.js pour le rendu
+    const newPoints = bezierPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
+
+    // On renvoie les points générés à la fonction d'appelle sans les afficher pour l'instant
+    return newPoints
 }
 
 // Dessine notre figure de contrôle

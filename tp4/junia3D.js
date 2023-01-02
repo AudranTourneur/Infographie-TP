@@ -1,4 +1,4 @@
-import { drawBernstein } from './courbesBezier.js';
+import { drawBernstein, getBernsteinPoints } from './courbesBezier.js';
 import { TOUTES_LES_COURBES } from './donnnes/data.js';
 import { COURBES_JUNIA } from './donnnes/junia.js';
 import { updateList } from './gui.js'
@@ -64,6 +64,7 @@ const blueMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3
 const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
 
 const greenMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
+const yellowMaterial = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 })
 
 
 
@@ -391,11 +392,11 @@ function getTransformedList(original) {
   return original.map(e => { return transformPoint(e) })
 }
 
-function drawSpheres(points, material) {
+function drawSpheres(points, material, radius = .2) {
   for (const p of points) {
-    const geometry = new THREE.SphereGeometry(.2, 32, 16);
+    const geometry = new THREE.SphereGeometry(radius, 32, 16);
     const sphere = new THREE.Mesh(geometry, material);
-    sphere.position.set(p.x, p.y, p.z)
+    sphere.position.set(p.x, p.y, p.z ?? 0)
     scene.add(sphere);
   }
 }
@@ -408,6 +409,7 @@ function drawSimpleCurve(points) {
 
   scene.add(curve);
 
+  /*
   const altPoints = points.map(e => new THREE.Vector3(e.x, e.y, 20));
   const altGeom = new THREE.BufferGeometry().setFromPoints(altPoints);
   const altCurve = new THREE.Line(altGeom, blueMaterial);
@@ -420,6 +422,87 @@ function drawSimpleCurve(points) {
     const link = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b], redMaterial))
     scene.add(link)
   }
+  */
+}
+
+function getSimpleLineSpacedPoints(controlPoints, step) {
+  if (controlPoints.length < 2) throw Error('Impossible de générer un ensemble de segments avec moins de 2 points')
+  const finalPoints = []
+  for (let i = 0; i < controlPoints.length - 1; i++) {
+    const startPoint = controlPoints[i]
+    const endPoint = controlPoints[i + 1]
+
+    const deltaVector = {
+      x: (endPoint.x - startPoint.x),
+      y: (endPoint.y - startPoint.y)
+    }
+
+    for (let j = 0; j <= 1; j += step) {
+      finalPoints.push(({
+        x: startPoint.x + j * deltaVector.x,
+        y: startPoint.y + j * deltaVector.y
+      }))
+    }
+  }
+  return finalPoints
+}
+
+// Renvoie l'ensemble des sommets espacés d'un certain pas
+
+function getCombinedVertices(curve, step = 0.2) {
+  const points = []
+  for (const curvePart of curve) {
+    const controlPoints = curvePart.points
+    if (curvePart.type === 'line') {
+      points.push(...getSimpleLineSpacedPoints(controlPoints, step))
+    }
+    else if (curvePart.type === 'bezier') {
+      points.push(...getBernsteinPoints(scene, controlPoints, step))
+    }
+  }
+
+  const threePoints = points.map(p => new THREE.Vector3(p.x, p.y, 0))
+
+  return threePoints
+}
+
+function getRandomColor() {
+  return Math.floor(Math.random() * Math.pow(255, 3))
+}
+
+// points: THREE.Vector3[]
+function draw3DShapeFromPattern(points) {
+  //console.log(points)
+
+  const altPoints = []
+  for (const point of points) {
+    const altPoint = new THREE.Vector3(point.x, point.y, -20)
+    altPoints.push(altPoint)
+
+    const linkGeom = new THREE.BufferGeometry().setFromPoints([point, altPoint])
+    const link = new THREE.Line(linkGeom, new THREE.LineBasicMaterial({ color: 0x999999 }))
+    scene.add(link)
+  }
+
+  console.log('1',points)
+  console.log('2',altPoints)
+
+  for (let i = 0; i < points.length - 1; i++) {
+    for (const pointCollection of [points]) {
+      const a = pointCollection[i]
+      const b = pointCollection[i + 1]
+
+      //console.log('A/B', a, b)
+      const polyGeom = new THREE.BufferGeometry().setFromPoints([a, b]);
+      const line = new THREE.Line(polyGeom, new THREE.LineBasicMaterial({ linewidth: 3, color: getRandomColor() }));
+      scene.add(line)
+    }
+
+
+  }
+
+
+
 
 }
 
@@ -429,19 +512,26 @@ export function refreshCanvas() {
 
   // Supprime tous les elements de la scène et supprime de la mémoire les
   // éléments
-    for (const child of scene.children) {
-      // Si c'est nos axes, on ne les suprime pas
-      if (child == scene.getObjectByName('Axis')) {
-        continue
-      }
-
-      disposeNode(child)
-      scene.remove(child);
+  for (const child of scene.children) {
+    // Si c'est nos axes, on ne les suprime pas
+    if (child == scene.getObjectByName('Axis')) {
+      continue
     }
 
+    disposeNode(child)
+    scene.remove(child);
+  }
+
+  //console.log(getCombinedVertices(allCurves[1]))
+
   for (const curve of allCurves) {
+    const vertices = getCombinedVertices(curve, .2)
+    //drawSpheres(vertices, yellowMaterial, .2)
+    draw3DShapeFromPattern(vertices)
+    /*
     for (const curvePart of curve) {
       //acc += curvePart.points.length
+      //console.log(curvePart.points)
       drawSpheres(curvePart.points, curvePart.type === 'line' ? greenMaterial : redMaterial)
       if (curvePart.type === 'line') {
         drawSimpleCurve(curvePart.points)
@@ -450,12 +540,11 @@ export function refreshCanvas() {
         drawBernstein(scene, curvePart.points)
       }
     }
+    */
   }
 }
 
-
 let skips = 0
-
 
 function animate() {
   if (skips % 60 === 0) {

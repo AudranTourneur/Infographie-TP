@@ -1,4 +1,4 @@
-import { getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet, isCustomVecNoeudValid, listOfControlStructures } from "./juniaBSplines2D.js"
+import { getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet, isCustomVecNoeudValid, listOfControlStructures } from "./junia2D.js"
 import { handleClick, deleteAllPoints, updateList, addPoint, updateTransformations,afficherPointsConsole } from "./gui.js"
 
 /*
