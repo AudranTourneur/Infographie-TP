@@ -1,8 +1,5 @@
 import { drawBernstein, getBernsteinPoints } from './courbesBezier.js'
-import { TOUTES_LES_COURBES } from './donnnes/data.js'
-import { COURBES_JUNIA } from './donnnes/junia.js'
-import { updateList } from './gui.js'
-import { Settings } from './input.js'
+import { MAP_JUNIA } from './junia.js'
 import {
   addToArrayOrCreate,
   choose,
@@ -11,6 +8,7 @@ import {
 } from './utils.js'
 //import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { OrbitControls } from 'https://unpkg.com/three@0.119.1/examples/jsm/controls/OrbitControls.js'
+import TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.esm.js'
 
 /*
   Ce fichier contient la majorité de la logique mathématique pour les courbes de
@@ -48,9 +46,6 @@ const scene = new THREE.Scene()
 
 scene.background = new THREE.Color(0.3, 0.3, 0.3)
 
-// Objet qui contient les paramètres spécifiés par l'utilisateur
-const settings = new Settings(canvas, camera)
-
 // Définition des matériaux qui seront utilisés plus tard
 const blueMaterial = new THREE.LineBasicMaterial({
   color: 0x0000ff,
@@ -62,6 +57,7 @@ const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
 const greenMaterial = new THREE.LineBasicMaterial({
   color: 0x00ff00,
   linewidth: 2,
+  side: THREE.DoubleSide,
 })
 const yellowMaterial = new THREE.LineBasicMaterial({
   color: 0xffff00,
@@ -74,17 +70,18 @@ const STEP = 0.1
 // Par défaut, elle est construite avec c1, c2 et c3
 //export let listOfControlStructures = [c1];
 
-const allCurves = COURBES_JUNIA
-
 export let listOfControlStructures = [{ data: [], visible: true }]
 
 function drawSpheres(points, material, radius = 0.2) {
+  let spheres = []
   for (const p of points) {
     const geometry = new THREE.SphereGeometry(radius, 32, 16)
     const sphere = new THREE.Mesh(geometry, material)
     sphere.position.set(p.x, p.y, p.z ?? 0)
     scene.add(sphere)
+    spheres.push(sphere)
   }
+  return spheres
 }
 
 function getSimpleLineSpacedPoints(controlPoints, step) {
@@ -146,7 +143,10 @@ function getShape(points) {
 
 // points: THREE.Vector3[]
 function draw3DShapeFromPattern(points, shape) {
-  drawSpheres(points, yellowMaterial, 0.3)
+  const allObjects = []
+
+  allObjects.push(...drawSpheres(points, yellowMaterial, 0.3))
+
   const links = [] // {start: Vector3 , end: Vector3}
 
   const altPoints = []
@@ -160,10 +160,12 @@ function draw3DShapeFromPattern(points, shape) {
       new THREE.LineBasicMaterial({ color: 0x999999 }),
     )
     scene.add(link)
+    allObjects.push(link)
+
     links.push({ start: point, end: altPoint })
   }
 
-  drawSpheres(altPoints, blueMaterial, 0.3)
+  allObjects.push(...drawSpheres(altPoints, blueMaterial, 0.3))
 
   for (let i = 0; i < points.length - 1; i++) {
     for (const pointCollection of [points, altPoints]) {
@@ -176,6 +178,7 @@ function draw3DShapeFromPattern(points, shape) {
         new THREE.LineBasicMaterial({ linewidth: 3, color: getRandomColor() }),
       )
       scene.add(line)
+      allObjects.push(line)
     }
   }
 
@@ -184,12 +187,7 @@ function draw3DShapeFromPattern(points, shape) {
     const second = links[i + 1]
 
     const geometry = new THREE.PlaneGeometry(10, 30)
-    const material = new THREE.MeshBasicMaterial({
-      color: getRandomColor(),
-      //color: 0xff00ff,
-      color: 0x792eac,
-      side: THREE.DoubleSide,
-    })
+    const material = greenMaterial
 
     geometry.attributes.position.array[0] = first.start.x
     geometry.attributes.position.array[1] = first.start.y
@@ -209,29 +207,34 @@ function draw3DShapeFromPattern(points, shape) {
 
     const mesh = new THREE.Mesh(geometry, material)
     scene.add(mesh)
+    allObjects.push(mesh)
   }
 
   if (shape) {
     for (const z of [0, -20]) {
       const geometry = new THREE.ShapeGeometry(shape)
-      const material = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        side: THREE.DoubleSide,
-      })
+      const material = greenMaterial
       const mesh = new THREE.Mesh(geometry, material)
 
       mesh.position.z = z
-      console.log(mesh.position)
-
       scene.add(mesh)
+      allObjects.push(mesh)
     }
   }
+
+  return allObjects
+}
+
+const groups = {
+  j: new THREE.Group(),
+  un: new THREE.Group(),
+  i: new THREE.Group(),
+  a: new THREE.Group(),
 }
 
 function drawLetterA() {
-  console.log(allCurves)
-  const outerA = allCurves[6]
-  const innerA = allCurves[5]
+  const outerA = MAP_JUNIA.aOuter
+  const innerA = MAP_JUNIA.aInner
 
   const verticesOuterA = getCombinedVertices(outerA, STEP)
   const verticesInnerA = getCombinedVertices(innerA, STEP)
@@ -239,31 +242,53 @@ function drawLetterA() {
   const shapeOuterA = getShape(verticesOuterA)
   const shapeInnerA = getShape(verticesInnerA)
 
-  draw3DShapeFromPattern(verticesInnerA, null)
+  const innerObjects = draw3DShapeFromPattern(verticesInnerA, null)
 
   shapeOuterA.holes.push(shapeInnerA)
-  draw3DShapeFromPattern(verticesOuterA, shapeOuterA)
+  const outerObjects = draw3DShapeFromPattern(verticesOuterA, shapeOuterA)
 
   console.log(shapeOuterA, shapeInnerA)
+
+  return [...innerObjects, ...outerObjects]
 }
 
 function drawShapes() {
-  const fullShapes = [...allCurves.slice(0, 5)]
-  console.log(fullShapes)
-
-  for (const curve of fullShapes) {
-    const vertices = getCombinedVertices(curve, STEP)
-    const shape = getShape(vertices)
-    draw3DShapeFromPattern(vertices, shape)
+  const J = MAP_JUNIA
+  const fullShapes = {
+    j: [J.jBody, J.jPoint],
+    un: [J.unBody],
+    i: [J.iBody, J.iPoint],
   }
 
-  drawLetterA()
+  for (const [key, curves] of Object.entries(fullShapes)) {
+    console.log(key, curves)
+    for (const curve of curves) {
+      const vertices = getCombinedVertices(curve, STEP)
+      const shape = getShape(vertices)
+
+      const objects = draw3DShapeFromPattern(vertices, shape)
+      console.log(key, '=>', objects)
+      for (const obj of objects) {
+        groups[key].add(obj)
+      }
+    }
+
+    scene.add(groups[key])
+  }
+
+  console.log(groups)
+
+  const objectsA = drawLetterA() // A
+
+  for (const obj of objectsA) {
+    groups.a.add(obj)
+  }
+
+  scene.add(groups.a)
 }
 
 // Mise à jour notre canvas
 export function refreshCanvas() {
-  const s = settings
-
   // Supprime tous les elements de la scène et supprime de la mémoire les
   // éléments
   for (const child of scene.children) {
@@ -275,40 +300,55 @@ export function refreshCanvas() {
     disposeNode(child)
     scene.remove(child)
   }
-
-  drawShapes()
 }
 
-let skips = 0
+controls.autoRotate = true
 
 function animate() {
-  if (skips % 60 === 0) {
-    console.log('CALL')
-    refreshCanvas()
+
+  TWEEN.update()
+
+  const tween = new TWEEN.Tween(greenMaterial.color)
+    .to({r: 1, g: 0, b: 1}, 1000)
+    .to({r: 0, g: 1, b: 0}, 1000)
+    .to({r: 0, g: 0, b: 1}, 1000)
+    .yoyo(true)
+    .start()
+
+    console.log(tween)
+    console.log(greenMaterial.color)
+
+
+  console.log(TWEEN)
+  controls.update()
+
+  console.log(greenMaterial)
+  //greenMaterial.color = getRandomColor()
+
+  //greenMaterial.color.r = Math.random()
+  //greenMaterial.color.g = Math.random()
+  //greenMaterial.color.b = Math.random()
+
+  for (const [key, group] of Object.entries(groups)) {
+    //group.scale.x = Math.random() * 2
+    //group.scale.y = Math.random() * 2
+    //group.scale.z = Math.random() * 2
   }
 
-  // On fait le rendu graphique à chaque frame puisque l'état du monde a
-  // peut-être été modifié
   renderer.render(scene, camera)
-  skips++
-
-  // On demande au naviguateur d'éxecuter cette fonction en continue (60 fois
-  // par seconde en général)
   requestAnimationFrame(animate)
 }
 
-// Première initialisation de notre liste de points à afficher
-// updateList(c1)
-//updateList(c1)
+function init() {
+  // On dessine et on créer nos axes
+  const axisGroup = drawAxisGraduation()
+  axisGroup.name = 'Axis'
+  scene.add(axisGroup)
 
-// On dessine et on créer nos axes
-const axisGroup = drawAxisGraduation()
-axisGroup.name = 'Axis'
-scene.add(axisGroup)
+  drawShapes()
 
-// On appelle la fonction une première fois pour initialiser
-animate()
-
-for (const courbe of TOUTES_LES_COURBES) {
-  loadCurveFromListOfPoints(courbe)
+  // On appelle la fonction une première fois pour initialiser
+  animate()
 }
+
+init()

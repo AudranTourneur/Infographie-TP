@@ -1,8 +1,5 @@
 import { drawBernstein } from './courbesBezier.js';
-import { TOUTES_LES_COURBES } from './donnnes/data.js';
-import { COURBES_JUNIA } from './donnnes/junia.js';
-import { updateList } from './gui.js'
-import { Settings } from './input.js'
+import { COURBES_JUNIA } from './junia.js';
 import { addToArrayOrCreate, choose, disposeNode, drawAxisGraduation } from './utils.js'
 
 /*
@@ -35,15 +32,12 @@ const scene = new THREE.Scene();
 
 scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
-// Objet qui contient les paramètres spécifiés par l'utilisateur
-const settings = new Settings(canvas, camera);
-
 // Définition des matériaux qui seront utilisés plus tard
 const blueMaterial =
   new THREE.LineBasicMaterial({ color: 0x0000ff, linewidth: 3 });
-const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 });
 const greenMaterial =
-  new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 })
+  new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2, transparent: true, opacity: 0.5 })
 
 
 
@@ -74,7 +68,6 @@ export let listOfControlStructures = [{ data: [], visible: true }];
 // Dessine une courbe avec les bases de BSpline
 function drawPointsBSpline(scene, controlPoints) {
   const step = STEP;  // pas de t
-  let degre = settings.degreeAlgo;
   let ordre = degre + 1;
   let vecNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet(controlPoints);
   let n = controlPoints.length - 1;  // length des points de controles
@@ -203,7 +196,6 @@ function updateDeBoorState() {
 
 // Gère l'animation des traits de construction de la courbe de De Boor
 function drawDeBoorAnimated(controlPoints) {
-  const k = settings.degreeAlgo + 1;
 
   const n = controlPoints.length - 1;
 
@@ -283,93 +275,6 @@ function drawControlPoints(controlPoints) {
   scene.add(controlPolygon)
 }
 
-// Applique toutes les transformés, translation, hométhétie et rotation pour un
-// point {x, y} donné
-export function transformPoint(point) {
-  // Paramètres sélectionnés par l'utilisateur
-  const s = settings;
-  // Angle en radian
-  const theta = s.rotationFactorDeg * Math.PI / 180;
-
-  // Translation
-  const translated = {
-    x: point.x + s.translationX,
-    y: point.y + s.translationY
-  }
-
-  // Hométhétie
-  const scaled = {
-    x: translated.x * s.scaleFactor,
-    y: translated.y * s.scaleFactor
-  }
-
-  // Translation vers une nouvelle origine si le centre de rotation n'est pas
-  // (0, 0)
-  const rotationNormalized = {
-    x: scaled.x - s.rotationCenterX,
-    y: scaled.y - s.rotationCenterY
-  }
-
-  // Application d'une matrice de rotation
-  // https://en.wikipedia.org/wiki/Rotation_matrix
-  const rotated = {
-    x: (rotationNormalized.x * Math.cos(theta) -
-      rotationNormalized.y * Math.sin(theta)),
-    y: (rotationNormalized.x * Math.sin(theta) +
-      rotationNormalized.y * Math.cos(theta)),
-  }
-
-  // On ramène le point après avoir effectué une rotation selon une nouvelle
-  // origine
-  const rotatedNormal = {
-    x: rotated.x + s.rotationCenterX,
-    y: rotated.y + s.rotationCenterY,
-  }
-
-  // Coordonnées finales
-  return rotatedNormal;
-}
-
-// Applique la transforme inverse à un point (on l'utilise pour pouvoir ajouter
-// un point lorsque l'utilisateur clique sur le canvas et qu'une transformée est
-// déjà en cours d'application)
-// Il s'agit de l'exact inverse de la fonction transformPoint(point)
-export function inverseTransformPoint(point) {
-  const s = settings;
-  const theta = s.rotationFactorDeg * Math.PI / 180;
-
-  const rotatedNormal = {
-    x: point.x - s.rotationCenterX,
-    y: point.y - s.rotationCenterY,
-  }
-
-  const rotated = {
-    x: (rotatedNormal.x * Math.cos(theta) + rotatedNormal.y * Math.sin(theta)),
-    y: (rotatedNormal.x * -Math.sin(theta) + rotatedNormal.y * Math.cos(theta)),
-  }
-
-  const rotationNormalized = {
-    x: rotated.x + s.rotationCenterX,
-    y: rotated.y + s.rotationCenterY
-  }
-
-  const scaled = {
-    x: rotationNormalized.x / s.scaleFactor,
-    y: rotationNormalized.y / s.scaleFactor
-  }
-
-  const translated = {
-    x: scaled.x - s.translationX,
-    y: scaled.y - s.translationY
-  }
-
-  return translated;
-}
-
-// Renvoie la liste transformée d'une liste de coordonnés
-function getTransformedList(original) {
-  return original.map(e => { return transformPoint(e) })
-}
 
 // Lie les points passés en paramètre par des traits
 function drawSimpleCurve(points) {
@@ -394,8 +299,6 @@ let counter = 0
 
 // Mise à jour notre canvas
 export function refreshCanvas() {
-  const s = settings;
-
   // Supprime tous les elements de la scène et supprime de la mémoire les
   // éléments
   for (const child of scene.children) {
@@ -510,8 +413,4 @@ function loadCurveFromListOfPoints(courbe) {
     data: courbe.points.map(p => ({ x: p.x + courbe.offset.x, y: p.y + courbe.offset.y })),
     visible: true,
   })
-}
-
-for (const courbe of TOUTES_LES_COURBES) {
-  loadCurveFromListOfPoints(courbe)
 }
