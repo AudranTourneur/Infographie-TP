@@ -1,14 +1,11 @@
-import { drawBernstein, getBernsteinPoints } from './courbesBezier.js'
+import { getBernsteinPoints } from './courbesBezier.js'
 import { MAP_JUNIA } from './junia.js'
 import {
-  addToArrayOrCreate,
-  choose,
   disposeNode,
   drawAxisGraduation,
 } from './utils.js'
-//import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.119.1/examples/jsm/controls/OrbitControls.js'
-import TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.esm.js'
+import { OrbitControls } from './deps/OrbitControls.js'
+import TWEEN from './deps/tween.esm.js'
 
 /*
   Ce fichier contient la majorité de la logique mathématique pour les courbes de
@@ -23,9 +20,7 @@ const renderer = new THREE.WebGLRenderer({
 // Création d'un premier canvas principal
 const canvas = document.getElementById('canvas')
 
-// Comme on a une barre de tâche de 25% à droite, on change la taille de
-// notre renderer
-const desiredWidth = (window.innerWidth * 3) / 4
+const desiredWidth = window.innerWidth
 const desiredHeight = window.innerHeight
 renderer.setSize(desiredWidth, desiredHeight)
 
@@ -44,7 +39,7 @@ const controls = new OrbitControls(camera, renderer.domElement)
 // Instanciation de la scène
 const scene = new THREE.Scene()
 
-scene.background = new THREE.Color(0.3, 0.3, 0.3)
+scene.background = new THREE.Color(0.7, 0.7, 0.7)
 
 // Définition des matériaux qui seront utilisés plus tard
 const blueMaterial = new THREE.LineBasicMaterial({
@@ -118,7 +113,7 @@ function getCombinedVertices(curve, step) {
     if (curvePart.type === 'line') {
       points.push(...getSimpleLineSpacedPoints(controlPoints, step))
     } else if (curvePart.type === 'bezier') {
-      points.push(...getBernsteinPoints(scene, controlPoints, step))
+      points.push(...getBernsteinPoints(controlPoints, step))
     }
   }
 
@@ -141,17 +136,21 @@ function getShape(points) {
   return shape
 }
 
+const allMaterials = []
+
+const DEPTH = -10
+
 // points: THREE.Vector3[]
 function draw3DShapeFromPattern(points, shape) {
   const allObjects = []
 
-  allObjects.push(...drawSpheres(points, yellowMaterial, 0.3))
+  //allObjects.push(...drawSpheres(points, yellowMaterial, 0.3))
 
   const links = [] // {start: Vector3 , end: Vector3}
 
   const altPoints = []
   for (const point of points) {
-    const altPoint = new THREE.Vector3(point.x, point.y, -20)
+    const altPoint = new THREE.Vector3(point.x, point.y, DEPTH)
     altPoints.push(altPoint)
 
     const linkGeom = new THREE.BufferGeometry().setFromPoints([point, altPoint])
@@ -159,26 +158,30 @@ function draw3DShapeFromPattern(points, shape) {
       linkGeom,
       new THREE.LineBasicMaterial({ color: 0x999999 }),
     )
-    scene.add(link)
-    allObjects.push(link)
+    //scene.add(link)
+    //allObjects.push(link)
 
     links.push({ start: point, end: altPoint })
   }
 
-  allObjects.push(...drawSpheres(altPoints, blueMaterial, 0.3))
+  //allObjects.push(...drawSpheres(altPoints, blueMaterial, 0.3))
 
   for (let i = 0; i < points.length - 1; i++) {
     for (const pointCollection of [points, altPoints]) {
       const a = pointCollection[i]
       const b = pointCollection[i + 1]
 
+      const material = new THREE.LineBasicMaterial({ linewidth: 3, color: getRandomColor() })
+
+      allMaterials.push(material)
+
       const polyGeom = new THREE.BufferGeometry().setFromPoints([a, b])
       const line = new THREE.Line(
         polyGeom,
-        new THREE.LineBasicMaterial({ linewidth: 3, color: getRandomColor() }),
+        material,
       )
-      scene.add(line)
-      allObjects.push(line)
+      //scene.add(line)
+      //allObjects.push(line)
     }
   }
 
@@ -187,7 +190,14 @@ function draw3DShapeFromPattern(points, shape) {
     const second = links[i + 1]
 
     const geometry = new THREE.PlaneGeometry(10, 30)
-    const material = greenMaterial
+    //const material = greenMaterial
+    const material = new THREE.LineBasicMaterial({
+      color: getRandomColor(),
+      side: THREE.DoubleSide
+    })
+
+
+    allMaterials.push(material)
 
     geometry.attributes.position.array[0] = first.start.x
     geometry.attributes.position.array[1] = first.start.y
@@ -211,7 +221,7 @@ function draw3DShapeFromPattern(points, shape) {
   }
 
   if (shape) {
-    for (const z of [0, -20]) {
+    for (const z of [0, DEPTH]) {
       const geometry = new THREE.ShapeGeometry(shape)
       const material = greenMaterial
       const mesh = new THREE.Mesh(geometry, material)
@@ -304,36 +314,68 @@ export function refreshCanvas() {
 
 controls.autoRotate = true
 
+const TIME = 5000
+
+
+let animationDone = false
+
+function initAnimations() {
+  const SMALL_SCALE = 0.1
+  groups.un.scale.x = SMALL_SCALE
+  groups.un.scale.y = SMALL_SCALE
+  groups.un.scale.z = SMALL_SCALE
+  new TWEEN.Tween(groups.un.scale)
+    .to({ x: 1, y: 1, z: 1 }, TIME)
+    //.repeat(100)
+    .yoyo(true)
+    .start()
+
+  groups.i.position.y = -50
+  new TWEEN.Tween(groups.i.position)
+    .to({ y: 0 }, TIME)
+    .start()
+
+  groups.j.rotation.z = Math.PI / 2
+  new TWEEN.Tween(groups.j.rotation)
+    .to({ z: 0 }, TIME)
+    .start()
+
+  groups.a.position.y = 50
+  new TWEEN.Tween(groups.a.position)
+    .to({ y: 0 }, TIME)
+    .start()
+
+
+  groups.a.rotation.y = 10 * Math.PI / 2
+  new TWEEN.Tween(groups.a.rotation)
+    .to({ y: 0 }, TIME)
+    .start()
+
+  const JUNIA_COLOR = { r: 63 / 255, g: 42 / 255, b: 86 / 255 }
+
+  const JUNIA_DARK_COLOR = { r: 63 / 300, g: 42 / 300, b: 86 / 300 }
+
+  setTimeout(() => {
+    for (const material of allMaterials) {
+      console.log('material', material.color)
+      new TWEEN.Tween(material.color)
+        .to(JUNIA_DARK_COLOR, TIME)
+        .start()
+    }
+  }, 0)
+
+  new TWEEN.Tween(greenMaterial.color)
+    .to(JUNIA_COLOR, TIME)
+    .start()
+
+}
+
 function animate() {
 
   TWEEN.update()
 
-  const tween = new TWEEN.Tween(greenMaterial.color)
-    .to({r: 1, g: 0, b: 1}, 1000)
-    .to({r: 0, g: 1, b: 0}, 1000)
-    .to({r: 0, g: 0, b: 1}, 1000)
-    .yoyo(true)
-    .start()
-
-    console.log(tween)
-    console.log(greenMaterial.color)
-
-
-  console.log(TWEEN)
-  controls.update()
-
-  console.log(greenMaterial)
-  //greenMaterial.color = getRandomColor()
-
-  //greenMaterial.color.r = Math.random()
-  //greenMaterial.color.g = Math.random()
-  //greenMaterial.color.b = Math.random()
-
-  for (const [key, group] of Object.entries(groups)) {
-    //group.scale.x = Math.random() * 2
-    //group.scale.y = Math.random() * 2
-    //group.scale.z = Math.random() * 2
-  }
+  if (animationDone)
+    controls.update()
 
   renderer.render(scene, camera)
   requestAnimationFrame(animate)
@@ -345,7 +387,25 @@ function init() {
   axisGroup.name = 'Axis'
   scene.add(axisGroup)
 
+
+  //for (const [key, group] of Object.entries(groups)) {
+  //  group.visible = false
+  //}
+
   drawShapes()
+
+
+
+  setTimeout(() => {
+    for (const [key, group] of Object.entries(groups)) {
+      group.visible = true
+    }
+  }, 200)
+
+  initAnimations()
+  setTimeout(() => {
+    animationDone = true
+  }, TIME)
 
   // On appelle la fonction une première fois pour initialiser
   animate()

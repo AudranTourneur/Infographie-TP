@@ -1,10 +1,9 @@
 import { drawBernstein } from './courbesBezier.js';
 import { COURBES_JUNIA } from './junia.js';
-import { addToArrayOrCreate, choose, disposeNode, drawAxisGraduation } from './utils.js'
+import { disposeNode, drawAxisGraduation } from './utils.js'
 
 /*
-  Ce fichier contient la majorité de la logique mathématique pour les courbes de
-  Bézier.
+  Ce fichier contient la majorité de la logique pour l'affichage de la courbe JUNIA en 2D
 */
 
 // Instanciation du renderer (moteur de rendu)
@@ -15,9 +14,7 @@ const renderer =
 // Création d'un premier canvas principal
 const canvas = document.getElementById('canvas')
 
-// Comme on a une barre de tâche de 25% à droite, on change la taille de
-// notre renderer
-const desiredWidth = window.innerWidth * 3 / 4
+const desiredWidth = window.innerWidth
 const desiredHeight = window.innerHeight
 renderer.setSize(desiredWidth, desiredHeight);
 
@@ -30,6 +27,7 @@ camera.position.z = 70;
 const scene = new THREE.Scene();
 
 
+// Fond de couleur gris
 scene.background = new THREE.Color(0.3, 0.3, 0.3);
 
 // Définition des matériaux qui seront utilisés plus tard
@@ -214,68 +212,6 @@ function drawDeBoorAnimated(controlPoints) {
   updateDeBoorState();
 }
 
-// Dessine la courbe finale selon l'algorithme de De Boor en entier (idem que
-// précedemment)
-function drawDeBoorStatic(controlPoints) {
-  //const k = settings.degreeAlgo + 1;
-  const k = 3;
-
-  const n = controlPoints.length - 1;
-
-  //const vecteurDeNoeud = getCustomVecNoeudOrDefaultUniformVecNoeudIfNotSet(controlPoints);
-  const vecteurDeNoeud = getUniformVecNoeud(controlPoints)
-  console.log('vec', vecteurDeNoeud)
-
-
-  function alphaIJ(i, j, tStar) {
-    const val = (tStar - vecteurDeNoeud[i]) /
-      (vecteurDeNoeud[i + k - j] - vecteurDeNoeud[i]);
-    return val
-  }
-
-  function pIJ(i, j, coords, tStar) {
-    if (j == 0) return controlPoints[i][coords];
-
-    const val = (1 - alphaIJ(i, j, tStar)) * pIJ(i - 1, j - 1, coords, tStar) +
-      alphaIJ(i, j, tStar) * pIJ(i, j - 1, coords, tStar);
-
-    return val;
-  }
-
-  const finalPoints = [];
-
-  const step = STEP;
-  for (let r = k - 1; r < n + 1; r++) {
-    for (let t = vecteurDeNoeud[r]; t < vecteurDeNoeud[r + 1]; t += step) {
-      const point = {
-        x: pIJ(r, k - 1, 'x', t),
-        y: pIJ(r, k - 1, 'y', t),
-      };
-      finalPoints.push(point)
-    }
-  }
-
-  let newPoints = finalPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
-  newPoints = newPoints.filter(p => !isNaN(p.x) && !isNaN(p.y));
-  const polyGeom = new THREE.BufferGeometry().setFromPoints(newPoints);
-  const curve = new THREE.Line(polyGeom, blueMaterial);
-
-  scene.add(curve);
-}
-
-
-// Etape compris entre 0 et n-1
-// i compris entre 0 et n-m-1
-
-// Dessine notre figure de contrôle
-function drawControlPoints(controlPoints) {
-  const threePoints = controlPoints.map(e => new THREE.Vector3(e.x, e.y, 0));
-  const polyGeom = new THREE.BufferGeometry().setFromPoints(threePoints);
-  const controlPolygon = new THREE.Line(polyGeom, greenMaterial);
-  scene.add(controlPolygon)
-}
-
-
 // Lie les points passés en paramètre par des traits
 function drawSimpleCurve(points) {
   const newPoints = points.map(e => new THREE.Vector3(e.x, e.y, 0));
@@ -313,7 +249,7 @@ export function refreshCanvas() {
 
   for (const curve of allCurves) {
     for (const curvePart of curve) {
-    //if (counter % 40 < 20)
+      //if (counter % 40 < 20)
       drawSpheres(curvePart.points, curvePart.type === 'line' ? greenMaterial : redMaterial)
       if (curvePart.type === 'line') {
         drawSimpleCurve(curvePart.points)

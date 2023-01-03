@@ -2,43 +2,6 @@
   Ce fichier contient des fonctions utilitaires utilisés par le reste du projet
 */
 
-// Génération d'un identifiant unique alétoire
-// Cette fonction est utilisé pour donner un identifiant arbitraire aux boutons dans le DOM
-// https://dirask.com/posts/JavaScript-UUID-function-in-Vanilla-JS-1X9kgD
-export function uuid() {
-    return 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
-
-// Transforme un clic de l'utilisateur sur le canvas en coordonnées three.js
-// https://stackoverflow.com/a/56416622
-export function clickEventToWorldCoords(e, canvas, camera) {
-    // Coordonnées X/Y relatif au canvas 
-    const rect = canvas.getBoundingClientRect(),
-        x = e.clientX - rect.left,
-        y = e.clientY - rect.top;
-
-    // Conversion des coordonnées du canvas vers l'espace three.js
-    // Normalisation des coordonnées sur l'intervalle [-1; 1]
-    const mouse = new THREE.Vector3();
-    mouse.x = ((x / canvas.clientWidth) * 2) - 1;
-    mouse.y = (-(y / canvas.clientHeight) * 2) + 1;
-    mouse.z = 0; // la composante z n'est pas utile
-
-    // projection inverse vers l'écran en utilisant les méthodes prédéfinies de three.js
-    mouse.unproject(camera);
-    // Normalisation de la position
-    mouse.sub(camera.position).normalize();
-    const distance = -camera.position.z / mouse.z;
-    // Mise à l'échelle du rayon projeté
-    const scaled = mouse.multiplyScalar(distance);
-    // Position finale
-    const coords = camera.position.clone().add(scaled);
-    return coords;
-}
-
 // Dessine les axes du plan (repère)
 export function drawAxisGraduation() {
     // Création d'un groupe three.js pour grouper nos objets relatif aux axes
@@ -129,25 +92,5 @@ export function disposeNode(child) {
         for (const subchild of child.children) {
             disposeNode(subchild)
         }
-    }
-}
-
-// Renvoie k parmi n
-export function choose(n, k) {
-    if (k === 0) return 1; // Cas de base (une seule manière de choisir 0 éléments)
-    return (n * choose(n - 1, k - 1)) / k; // Définition récursive de k parmi n
-}
-
-// Arrondi à deux décimales près
-export function round2(num) {
-    return Math.round(num * 100) / 100
-}
-
-// Ajoute un objet à un tableau, le tableau est crée s'il n'existe pas
-export function addToArrayOrCreate(obj, key, elem) {
-    if (obj[key] === undefined) {
-        obj[key] = [elem];
-    } else {
-        obj[key].push(elem);
     }
 }
